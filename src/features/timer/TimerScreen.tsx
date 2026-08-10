@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Penalty, Solve } from '../../types';
-import { generateScramble } from '../../lib/scramble';
+import { getEvent, type EventId } from '../../lib/events';
 import { formatSolveResult, formatTime } from '../../lib/time';
 import { randomQuote } from '../../lib/quotes';
 import { bestOf, computeStreak, effectiveMs, todayCount as computeTodayCount } from '../../lib/stats';
@@ -15,6 +15,7 @@ const INSPECTION_LIMIT_SECONDS = 17;
 
 interface Props {
   solves: Solve[];
+  event: EventId;
   dailyGoal: number;
   inspectionEnabled: boolean;
   characterId: CharacterId;
@@ -28,6 +29,7 @@ const bluetoothSupported = typeof navigator !== 'undefined' && 'bluetooth' in na
 
 export function TimerScreen({
   solves,
+  event,
   dailyGoal,
   inspectionEnabled,
   characterId,
@@ -36,8 +38,11 @@ export function TimerScreen({
   onFinishSolve,
   onUpdatePenalty,
 }: Props) {
+  const eventDef = getEvent(event);
+  const inspectionActive = inspectionEnabled && eventDef.usesInspection;
+
   const [phase, setPhase] = useState<Phase>('idle');
-  const [scramble, setScramble] = useState(() => generateScramble());
+  const [scramble, setScramble] = useState(() => eventDef.generateScramble());
   const [elapsedMs, setElapsedMs] = useState(0);
   const [inspectMs, setInspectMs] = useState(0);
   const [lastResultMs, setLastResultMs] = useState<number | null>(null);
@@ -70,6 +75,14 @@ export function TimerScreen({
       ganRef.current?.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    setScramble(eventDef.generateScramble());
+    setPhase('idle');
+    setLastResultMs(null);
+    setResultPending(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event]);
 
   function tickSolve() {
     setElapsedMs(performance.now() - startTimeRef.current);
@@ -126,7 +139,7 @@ export function TimerScreen({
     setLastPenalty(penalty);
     setResultPending(true);
     onFinishSolve(ms, scramble, penalty);
-    setScramble(generateScramble());
+    setScramble(eventDef.generateScramble());
     setQuote(randomQuote());
     pendingPenaltyRef.current = null;
   }
@@ -151,7 +164,7 @@ export function TimerScreen({
 
   function handlePointerUp() {
     if (phase === 'armed') {
-      if (inspectionEnabled) {
+      if (inspectionActive) {
         startInspection();
       } else {
         startTimer(null);
@@ -211,7 +224,8 @@ export function TimerScreen({
   const streak = computeStreak(solves, dailyGoal);
   const today = computeTodayCount(solves);
 
-  const best = bestOf(solves);
+  const eventSolves = solves.filter((s) => s.event === event);
+  const best = bestOf(eventSolves);
   const pbMs = best ? effectiveMs(best) : null;
   const pbProgress = phase === 'running' && pbMs ? Math.min(1, elapsedMs / pbMs) : null;
   const pbDiffMs = phase === 'running' && pbMs ? elapsedMs - pbMs : null;
@@ -234,6 +248,11 @@ export function TimerScreen({
           <div className="scramble-chip">
             <div className="scramble-text mono">{scramble}</div>
           </div>
+          {!eventDef.wellEstablishedNotation && phase === 'idle' && (
+            <p className="faint" style={{ marginTop: 6, textAlign: 'center' }}>
+              ⚠️ {eventDef.name} 스크램블은 간이 연습용이에요
+            </p>
+          )}
           <div className="timer-goal-row">
             {inspecting ? (
               <span className="badge badge-accent">🔍 검사 중</span>
@@ -307,7 +326,7 @@ export function TimerScreen({
         <div className="timer-bottom">
           <p className="timer-hint">
             {phase === 'armed'
-              ? inspectionEnabled
+              ? inspectionActive
                 ? '손을 떼면 검사가 시작돼요'
                 : '손을 떼면 시작해요'
               : '화면을 터치했다가 손을 떼면 시작돼요'}

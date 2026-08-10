@@ -3,6 +3,7 @@ import './App.css';
 import type { Penalty, Settings, Solve, TabKey } from './types';
 import { loadSettings, loadSolves, makeSolveId, saveSettings, saveSolves } from './lib/storage';
 import { bestOf, effectiveMs } from './lib/stats';
+import { EVENTS } from './lib/events';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
 import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
@@ -78,8 +79,9 @@ export default function App() {
   }
 
   function addSolve(ms: number, scramble: string, penalty: Penalty = null) {
-    const previousBest = bestOf(solves);
-    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty };
+    const eventId = settings.currentEvent;
+    const previousBest = bestOf(solves.filter((s) => s.event === eventId));
+    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty, event: eventId };
     const next = [solve, ...solves];
     setSolves(next);
     saveSolves(next);
@@ -105,8 +107,10 @@ export default function App() {
   }
 
   function clearAllSolves() {
-    setSolves([]);
-    saveSolves([]);
+    const eventId = settings.currentEvent;
+    const next = solves.filter((s) => s.event !== eventId);
+    setSolves(next);
+    saveSolves(next);
   }
 
   const showChrome = !running;
@@ -115,7 +119,19 @@ export default function App() {
     <>
       {showChrome && (
         <header className="app-header">
-          <div className="app-header__title">🧊 큐브 연습</div>
+          <div className="app-header__title">🧊</div>
+          <select
+            className="event-select"
+            value={settings.currentEvent}
+            onChange={(e) => updateSettings({ currentEvent: e.target.value as Settings['currentEvent'] })}
+            aria-label="종목 선택"
+          >
+            {EVENTS.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                {ev.name}
+              </option>
+            ))}
+          </select>
           <div className="app-header__actions">
             <button
               className="icon-btn"
@@ -147,6 +163,7 @@ export default function App() {
         {activeTab === 'timer' && (
           <TimerScreen
             solves={solves}
+            event={settings.currentEvent}
             dailyGoal={settings.dailyGoal}
             inspectionEnabled={settings.inspectionEnabled}
             characterId={settings.mascotCharacter}

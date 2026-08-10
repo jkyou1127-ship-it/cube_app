@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lastOpenedAt: null,
   inspectionEnabled: true,
   mascotCharacter: 'blob-blue',
+  currentEvent: '333',
 };
 
 function safeParse<T>(raw: string | null, fallback: T): T {
@@ -25,6 +26,10 @@ function safeParse<T>(raw: string | null, fallback: T): T {
 export function loadSolves(): Solve[] {
   const raw = localStorage.getItem(SOLVES_KEY);
   const solves = safeParse<Solve[]>(raw, []);
+  // older records saved before events were introduced default to 3x3x3
+  for (const s of solves) {
+    if (!s.event) s.event = '333';
+  }
   return solves.sort((a, b) => b.date - a.date);
 }
 

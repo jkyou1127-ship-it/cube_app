@@ -1,4 +1,5 @@
 import type { CharacterId } from './lib/mascotCharacters';
+import type { EventId } from './lib/events';
 
 export type Penalty = null | '+2' | 'DNF';
 
@@ -8,6 +9,7 @@ export interface Solve {
   scramble: string;
   date: number;
   penalty: Penalty;
+  event: EventId;
 }
 
 export interface Settings {
@@ -18,6 +20,7 @@ export interface Settings {
   lastOpenedAt: number | null;
   inspectionEnabled: boolean;
   mascotCharacter: CharacterId;
+  currentEvent: EventId;
 }
 
 export type TabKey = 'timer' | 'records' | 'fun';

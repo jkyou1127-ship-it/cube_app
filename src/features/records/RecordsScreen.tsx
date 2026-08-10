@@ -4,6 +4,7 @@ import { formatTime } from '../../lib/time';
 import { isNotificationSupported, requestNotificationPermission } from '../../lib/notifications';
 import { MASCOT_CHARACTERS } from '../../lib/mascotCharacters';
 import { PixelMascot } from '../../components/PixelMascot';
+import { getEvent } from '../../lib/events';
 import { SolveRow } from './SolveRow';
 
 interface Props {
@@ -22,10 +23,12 @@ function fmt(v: number | 'DNF' | null): string {
 }
 
 export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePenalty, onDeleteSolve, onClearAll }: Props) {
-  const best = bestOf(solves);
-  const ao5 = average(solves, 5);
-  const ao12 = average(solves, 12);
-  const mean = sessionMean(solves);
+  const eventSolves = solves.filter((s) => s.event === settings.currentEvent);
+  const eventName = getEvent(settings.currentEvent).name;
+  const best = bestOf(eventSolves);
+  const ao5 = average(eventSolves, 5);
+  const ao12 = average(eventSolves, 12);
+  const mean = sessionMean(eventSolves);
   const streak = computeStreak(solves, settings.dailyGoal);
   const today = todayCount(solves);
   const goalProgress = settings.dailyGoal > 0 ? Math.min(1, today / settings.dailyGoal) : 0;
@@ -48,8 +51,8 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
   }
 
   function handleClearAll() {
-    if (solves.length === 0) return;
-    if (window.confirm('모든 솔브 기록을 삭제할까요? 이 작업은 되돌릴 수 없어요.')) {
+    if (eventSolves.length === 0) return;
+    if (window.confirm(`${eventName} 기록을 모두 삭제할까요? 이 작업은 되돌릴 수 없어요.`)) {
       onClearAll();
     }
   }
@@ -75,9 +78,12 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
         </div>
         <div className="stat-tile">
           <div className="stat-tile__label">횟수</div>
-          <div className="stat-tile__value mono">{solves.length}</div>
+          <div className="stat-tile__value mono">{eventSolves.length}</div>
         </div>
       </div>
+      <p className="faint" style={{ marginTop: -4, marginBottom: 4 }}>
+        {eventName} 기록 · 상단에서 종목을 바꿀 수 있어요
+      </p>
 
       <div className="section-title">목표 &amp; 스트릭</div>
       <div className="card">
@@ -175,19 +181,19 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
         )}
       </div>
 
-      <div className="section-title">솔브 기록</div>
-      {solves.length === 0 ? (
+      <div className="section-title">{eventName} 솔브 기록</div>
+      {eventSolves.length === 0 ? (
         <div className="empty-state">
           <div style={{ fontSize: 32, marginBottom: 8 }}>🧊</div>
-          <p>아직 기록이 없어요. 타이머 탭에서 첫 솔브를 시작해보세요!</p>
+          <p>아직 {eventName} 기록이 없어요. 타이머 탭에서 첫 솔브를 시작해보세요!</p>
         </div>
       ) : (
         <>
           <div className="solve-list">
-            {solves.map((s, i) => (
+            {eventSolves.map((s, i) => (
               <SolveRow
                 key={s.id}
-                index={solves.length - i}
+                index={eventSolves.length - i}
                 solve={s}
                 onUpdatePenalty={onUpdatePenalty}
                 onDelete={onDeleteSolve}
@@ -195,7 +201,7 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
             ))}
           </div>
           <button className="btn btn-danger btn-block" style={{ marginTop: 16 }} onClick={handleClearAll}>
-            전체 기록 삭제
+            {eventName} 기록 전체 삭제
           </button>
         </>
       )}

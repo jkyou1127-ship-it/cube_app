@@ -24,12 +24,33 @@
 }
 
 .app-header__title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 800;
   letter-spacing: -0.01em;
   display: flex;
   align-items: center;
   gap: 7px;
+}
+
+.event-select {
+  flex: 1;
+  margin: 0 10px;
+  max-width: 160px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  color: var(--text-dim);
 }
 
 .app-header__actions {
@@ -631,6 +652,7 @@
   word-spacing: 0.3em;
   color: var(--text);
   font-weight: 600;
+  white-space: pre-wrap;
 }
 
 .timer-goal-row {
