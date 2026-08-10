@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, session } = require('electron');
 const path = require('node:path');
 
 const isDev = !app.isPackaged;
@@ -88,7 +88,23 @@ app.on('second-instance', () => {
   }
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  // On Windows/Linux, Electron auto-CANCELS any Bluetooth pairing that needs extra
+  // confirmation unless this handler is registered (see Electron's session docs for
+  // setBluetoothPairingHandler). The GAN Timer's BLE pairing goes through this "confirm"
+  // step, so without a handler here the connection silently fails right after the device
+  // picker resolves - this was the real root cause of the timer "connection error".
+  session.defaultSession.setBluetoothPairingHandler((details, callback) => {
+    if (details.pairingKind === 'confirm' || details.pairingKind === 'confirmPin') {
+      callback({ confirmed: true });
+    } else if (details.pairingKind === 'providePin') {
+      callback({ confirmed: true, pin: '0000' });
+    } else {
+      callback({ confirmed: false });
+    }
+  });
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

@@ -1,84 +1,80 @@
-export interface GanTimerEvents {
-  onConnectionChange?: (connected: boolean) => void;
-  /** fires on any physical button press detected from the device (see caveat below) */
-  onButton?: () => void;
-}
+import { connectGanTimer, GanTimerState, type GanTimerConnection, type GanTimerEvent } from 'gan-web-bluetooth';
+import type { Subscription } from 'rxjs';
 
 /**
- * Best-effort Web Bluetooth connection to a GAN smart timer.
- *
- * IMPORTANT CAVEAT: GAN has not publicly documented the GATT service /
- * characteristic UUIDs or byte-level protocol for its smart timer, and this
- * has not been verified against real hardware. Rather than guessing at
- * specific UUIDs (which would *look* like a real integration but could
- * silently fail to work), this connects generically: it subscribes to
- * notifications on every characteristic the device exposes that supports
- * them, and treats any incoming notification as a generic "button pressed"
- * signal (with a cooldown, since a single physical press can emit several
- * BLE packets). If/when the real protocol is known, replace the body of the
- * characteristicvaluechanged handler below with proper packet parsing.
+ * Thin adapter around the `gan-web-bluetooth` library (MIT, by afedotov -
+ * https://github.com/afedotov/gan-web-bluetooth), which documents the real
+ * reverse-engineered GAN Smart Timer BLE protocol (service/characteristic
+ * UUIDs, packet format, CRC16 checksum). Using the real library instead of
+ * guessing at the protocol is what makes this integration actually work
+ * against real hardware, as opposed to the earlier generic best-effort
+ * "any notification = button press" placeholder.
  */
-export class GanTimerConnection {
-  private device: BluetoothDevice | null = null;
-  private lastTrigger = 0;
+export interface GanTimerCallbacks {
+  onConnectionChange?: (connected: boolean) => void;
+  /** both hands placed on the timer's touch plates */
+  onHandsOn?: () => void;
+  /** hands lifted before the grace delay expired (false start) */
+  onHandsOff?: () => void;
+  /** timer actually started counting (hands lifted after grace delay) */
+  onRunning?: () => void;
+  /** timer stopped; ms is the hardware-measured, authoritative solve time */
+  onStopped?: (ms: number) => void;
+  /** timer was reset to 0.00 - fired when the GAN logo button is pressed */
+  onIdle?: () => void;
+}
+
+export class GanTimerLink {
+  private conn: GanTimerConnection | null = null;
+  private sub: Subscription | null = null;
 
   get connected(): boolean {
-    return this.device?.gatt?.connected ?? false;
+    return this.conn !== null;
   }
 
-  get name(): string | undefined {
-    return this.device?.name;
-  }
-
-  async connect(events: GanTimerEvents): Promise<void> {
+  async connect(callbacks: GanTimerCallbacks): Promise<void> {
     if (!navigator.bluetooth) {
       throw new Error('이 환경은 Web Bluetooth를 지원하지 않아요.');
     }
 
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: 'GAN' }],
-      optionalServices: ['battery_service', 'device_information'],
+    const conn = await connectGanTimer();
+    this.conn = conn;
+    callbacks.onConnectionChange?.(true);
+
+    this.sub = conn.events$.subscribe((evt: GanTimerEvent) => {
+      switch (evt.state) {
+        case GanTimerState.HANDS_ON:
+          callbacks.onHandsOn?.();
+          break;
+        case GanTimerState.HANDS_OFF:
+          callbacks.onHandsOff?.();
+          break;
+        case GanTimerState.RUNNING:
+          callbacks.onRunning?.();
+          break;
+        case GanTimerState.STOPPED:
+          if (evt.recordedTime) {
+            callbacks.onStopped?.(Math.round(evt.recordedTime.asTimestamp));
+          }
+          break;
+        case GanTimerState.IDLE:
+          callbacks.onIdle?.();
+          break;
+        case GanTimerState.DISCONNECT:
+          this.conn = null;
+          callbacks.onConnectionChange?.(false);
+          break;
+        // GET_SET / FINISHED don't need separate handling for our UI
+        default:
+          break;
+      }
     });
-    this.device = device;
-    device.addEventListener('gattserverdisconnected', () => events.onConnectionChange?.(false));
-
-    const server = await device.gatt?.connect();
-    if (!server) throw new Error('GATT 서버에 연결하지 못했어요.');
-    events.onConnectionChange?.(true);
-
-    let services: BluetoothRemoteGATTService[] = [];
-    try {
-      services = await server.getPrimaryServices();
-    } catch {
-      return; // connected, but no readable services - nothing more we can do generically
-    }
-
-    for (const service of services) {
-      let chars: BluetoothRemoteGATTCharacteristic[] = [];
-      try {
-        chars = await service.getCharacteristics();
-      } catch {
-        continue;
-      }
-      for (const ch of chars) {
-        if (!ch.properties.notify) continue;
-        try {
-          await ch.startNotifications();
-          ch.addEventListener('characteristicvaluechanged', () => {
-            const now = performance.now();
-            if (now - this.lastTrigger < 1500) return;
-            this.lastTrigger = now;
-            events.onButton?.();
-          });
-        } catch {
-          // characteristic advertised notify but rejected subscription - skip it
-        }
-      }
-    }
   }
 
   disconnect(): void {
-    this.device?.gatt?.disconnect();
-    this.device = null;
+    this.sub?.unsubscribe();
+    this.sub = null;
+    this.conn?.disconnect();
+    this.conn = null;
   }
 }

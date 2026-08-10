@@ -29,28 +29,108 @@
   letter-spacing: -0.01em;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
-.event-select {
+.app-header__beta {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: var(--accent-soft, rgba(99, 102, 241, 0.14));
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 2px 6px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.event-picker {
+  position: relative;
   flex: 1;
   margin: 0 10px;
   max-width: 160px;
+}
+
+.event-picker__trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   border: 1px solid var(--border);
   background: var(--bg-card);
-  color: var(--text);
+  color: var(--text-dim);
   font-family: inherit;
   font-size: 13px;
   font-weight: 700;
   padding: 8px 10px;
   border-radius: 10px;
   cursor: pointer;
-  appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
-  background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%;
-  background-size: 5px 5px, 5px 5px;
-  background-repeat: no-repeat;
-  color: var(--text-dim);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.event-picker__trigger:hover,
+.event-picker__trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.event-picker__trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-picker__trigger svg {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.event-picker__trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.event-picker__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 180px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  padding: 6px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.event-picker__option {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.event-picker__option:hover {
+  background: var(--bg-hover, rgba(127, 127, 127, 0.12));
+}
+
+.event-picker__option.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .app-header__actions {

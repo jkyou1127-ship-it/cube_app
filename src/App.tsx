@@ -3,10 +3,10 @@ import './App.css';
 import type { Penalty, Settings, Solve, TabKey } from './types';
 import { loadSettings, loadSolves, makeSolveId, saveSettings, saveSolves } from './lib/storage';
 import { bestOf, effectiveMs } from './lib/stats';
-import { EVENTS } from './lib/events';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
 import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
+import { EventSelect } from './components/EventSelect';
 import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
@@ -119,19 +119,10 @@ export default function App() {
     <>
       {showChrome && (
         <header className="app-header">
-          <div className="app-header__title">🧊</div>
-          <select
-            className="event-select"
-            value={settings.currentEvent}
-            onChange={(e) => updateSettings({ currentEvent: e.target.value as Settings['currentEvent'] })}
-            aria-label="종목 선택"
-          >
-            {EVENTS.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.name}
-              </option>
-            ))}
-          </select>
+          <div className="app-header__title">
+            🧊<span className="app-header__beta">BETA 1.0</span>
+          </div>
+          <EventSelect value={settings.currentEvent} onChange={(id) => updateSettings({ currentEvent: id })} />
           <div className="app-header__actions">
             <button
               className="icon-btn"

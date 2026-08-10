@@ -4,7 +4,7 @@ import { getEvent, type EventId } from '../../lib/events';
 import { formatSolveResult, formatTime } from '../../lib/time';
 import { randomQuote } from '../../lib/quotes';
 import { bestOf, computeStreak, effectiveMs, todayCount as computeTodayCount } from '../../lib/stats';
-import { GanTimerConnection } from '../../lib/ganTimer';
+import { GanTimerLink } from '../../lib/ganTimer';
 import { PixelMascot } from '../../components/PixelMascot';
 import type { CharacterId } from '../../lib/mascotCharacters';
 
@@ -57,17 +57,7 @@ export function TimerScreen({
   const inspectStartRef = useRef(0);
   const rafRef = useRef<number>(0);
   const pendingPenaltyRef = useRef<Penalty>(null);
-  const phaseRef = useRef<Phase>(phase);
-  const resultPendingRef = useRef(false);
-  const ganRef = useRef<GanTimerConnection | null>(null);
-
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
-
-  useEffect(() => {
-    resultPendingRef.current = resultPending;
-  }, [resultPending]);
+  const ganRef = useRef<GanTimerLink | null>(null);
 
   useEffect(() => {
     return () => {
@@ -149,29 +139,66 @@ export function TimerScreen({
     if (lastSolveId) onUpdatePenalty(lastSolveId, penalty);
   }
 
-  function handlePointerDown(e: React.PointerEvent) {
-    e.preventDefault();
-    (e.target as Element).setPointerCapture?.(e.pointerId);
-    if (phase === 'running') {
-      stopTimer();
-    } else if (phase === 'idle') {
+  // The GAN Bluetooth event subscription lives far longer than any single
+  // render, so its callbacks must always dispatch through the *current*
+  // render's closures (which close over the current `scramble`/`event`/
+  // `onFinishSolve` etc.) rather than whichever ones existed when connect()
+  // was called - otherwise a solve finished via the physical timer could be
+  // recorded with a stale scramble or get lost against a stale solve list.
+  const latestRef = useRef({
+    phase,
+    inspectMs,
+    inspectionActive,
+    resultPending,
+    startTimer,
+    stopTimer,
+    finish,
+    startInspection,
+  });
+  latestRef.current = {
+    phase,
+    inspectMs,
+    inspectionActive,
+    resultPending,
+    startTimer,
+    stopTimer,
+    finish,
+    startInspection,
+  };
+
+  function armOrStop() {
+    const p = latestRef.current.phase;
+    if (p === 'running') {
+      latestRef.current.stopTimer();
+    } else if (p === 'idle') {
       setResultPending(false);
       setPhase('armed');
-    } else if (phase === 'inspecting') {
+    } else if (p === 'inspecting') {
       setPhase('inspecting-armed');
     }
   }
 
-  function handlePointerUp() {
-    if (phase === 'armed') {
-      if (inspectionActive) {
-        startInspection();
+  function releaseAndGo() {
+    const p = latestRef.current.phase;
+    if (p === 'armed') {
+      if (latestRef.current.inspectionActive) {
+        latestRef.current.startInspection();
       } else {
-        startTimer(null);
+        latestRef.current.startTimer(null);
       }
-    } else if (phase === 'inspecting-armed') {
-      startTimer(computeInspectionPenalty(inspectMs));
+    } else if (p === 'inspecting-armed') {
+      latestRef.current.startTimer(computeInspectionPenalty(latestRef.current.inspectMs));
     }
+  }
+
+  function handlePointerDown(e: React.PointerEvent) {
+    e.preventDefault();
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    armOrStop();
+  }
+
+  function handlePointerUp() {
+    releaseAndGo();
   }
 
   function handlePointerCancel() {
@@ -179,25 +206,75 @@ export function TimerScreen({
     else if (phase === 'inspecting-armed') setPhase('inspecting');
   }
 
+  // Space bar mirrors the touch/click gesture (hold = arm, release = go), the
+  // conventional speedcubing-timer keyboard shortcut. Listens on window (not the
+  // timer element) so it works regardless of focus, and dispatches through
+  // latestRef so the handlers never act on a stale phase snapshot.
+  useEffect(() => {
+    function isTypingTarget(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement)) return false;
+      return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.code !== 'Space' || e.repeat || isTypingTarget(e.target)) return;
+      e.preventDefault();
+      armOrStop();
+    }
+    function onKeyUp(e: KeyboardEvent) {
+      if (e.code !== 'Space' || isTypingTarget(e.target)) return;
+      e.preventDefault();
+      releaseAndGo();
+    }
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleBluetoothConnect(e: React.SyntheticEvent) {
     e.stopPropagation();
     setBtError(null);
     setBtBusy(true);
     try {
-      if (!ganRef.current) ganRef.current = new GanTimerConnection();
+      if (!ganRef.current) ganRef.current = new GanTimerLink();
       await ganRef.current.connect({
         onConnectionChange: (connected) => setBtConnected(connected),
-        onButton: () => {
-          // GAN 타이머의 로고/기능 버튼: 결과가 표시 중이면 먼저 0.00으로 리셋하고,
-          // 이미 리셋된 상태에서 다시 누르면 그때 검사 시간을 시작한다.
-          const p = phaseRef.current;
+        onHandsOn: () => {
+          const p = latestRef.current.phase;
+          if (p === 'idle') setPhase('armed');
+          else if (p === 'inspecting') setPhase('inspecting-armed');
+        },
+        onHandsOff: () => {
+          const p = latestRef.current.phase;
+          if (p === 'armed') setPhase('idle');
+          else if (p === 'inspecting-armed') setPhase('inspecting');
+        },
+        onRunning: () => {
+          const p = latestRef.current.phase;
+          if (p === 'running') return;
+          if (p === 'inspecting' || p === 'inspecting-armed') {
+            latestRef.current.startTimer(computeInspectionPenalty(latestRef.current.inspectMs));
+          } else {
+            latestRef.current.startTimer(null);
+          }
+        },
+        onStopped: (ms) => {
+          latestRef.current.finish(ms, pendingPenaltyRef.current);
+        },
+        onIdle: () => {
+          const p = latestRef.current.phase;
           if (p !== 'idle') return;
-          if (resultPendingRef.current) {
+          if (latestRef.current.resultPending) {
             setResultPending(false);
             setLastResultMs(0);
             return;
           }
-          startInspection();
+          if (latestRef.current.inspectionActive) {
+            latestRef.current.startInspection();
+          }
         },
       });
       setBtConnected(true);
