@@ -14,6 +14,36 @@ if (!gotLock) {
   app.quit();
 }
 
+// Electron doesn't show a native device picker for navigator.bluetooth.requestDevice()
+// the way a regular browser does, so it must be resolved here. This is an APP-level
+// event (not a webContents event) - without this handler, requestDevice() from the
+// renderer just hangs forever and the GAN timer "connect" button silently never
+// resolves. We pick the first named device that shows up (the renderer already
+// filters requestDevice() by the "GAN" name prefix), and give up after a short scan
+// window if nothing is found.
+let pendingBluetoothCallback = null;
+let pendingBluetoothTimeout = null;
+
+app.on('select-bluetooth-device', (event, deviceList, callback) => {
+  event.preventDefault();
+  const match = deviceList.find((d) => d.deviceName);
+  if (match) {
+    if (pendingBluetoothTimeout) clearTimeout(pendingBluetoothTimeout);
+    pendingBluetoothTimeout = null;
+    pendingBluetoothCallback = null;
+    callback(match.deviceId);
+    return;
+  }
+  pendingBluetoothCallback = callback;
+  if (!pendingBluetoothTimeout) {
+    pendingBluetoothTimeout = setTimeout(() => {
+      if (pendingBluetoothCallback) pendingBluetoothCallback('');
+      pendingBluetoothCallback = null;
+      pendingBluetoothTimeout = null;
+    }, 8000);
+  }
+});
+
 let mainWindow = null;
 
 function createWindow() {
@@ -44,32 +74,6 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };
-  });
-
-  // Electron doesn't show a native device picker for navigator.bluetooth.requestDevice()
-  // the way a regular browser does, so it must be resolved here. We pick the first
-  // named device that shows up (the renderer already filters requestDevice() by the
-  // "GAN" name prefix), and give up after a short scan window if nothing is found.
-  let pendingBluetoothCallback = null;
-  let pendingBluetoothTimeout = null;
-
-  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
-    event.preventDefault();
-    const match = deviceList.find((d) => d.deviceName);
-    if (match) {
-      if (pendingBluetoothTimeout) clearTimeout(pendingBluetoothTimeout);
-      pendingBluetoothCallback = null;
-      callback(match.deviceId);
-      return;
-    }
-    pendingBluetoothCallback = callback;
-    if (!pendingBluetoothTimeout) {
-      pendingBluetoothTimeout = setTimeout(() => {
-        if (pendingBluetoothCallback) pendingBluetoothCallback('');
-        pendingBluetoothCallback = null;
-        pendingBluetoothTimeout = null;
-      }, 8000);
-    }
   });
 
   mainWindow.on('closed', () => {

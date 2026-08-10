@@ -66,6 +66,8 @@
 html,
 body {
   height: 100%;
+  /* the app scrolls internally via .app-main; the outer document never scrolls */
+  overflow: hidden;
 }
 
 body {
@@ -81,7 +83,7 @@ body {
 }
 
 #root {
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }

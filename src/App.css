@@ -622,7 +622,9 @@
 .timer-mascot-slot {
   display: flex;
   justify-content: center;
-  margin: 6px 0 4px;
+  position: relative;
+  z-index: 2;
+  margin: 46px 0 -26px;
 }
 
 .timer-screen--idle {
@@ -638,10 +640,11 @@
 }
 
 .scramble-chip {
+  position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 14px 18px;
+  padding: 34px 18px 14px;
   box-shadow: var(--shadow-sm);
 }
 
