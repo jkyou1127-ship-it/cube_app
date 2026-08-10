@@ -23,16 +23,6 @@ const ITEMS: { key: TabKey; label: string; icon: ReactElement }[] = [
       </svg>
     ),
   },
-  {
-    key: 'algorithms',
-    label: '공식 학습',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      </svg>
-    ),
-  },
 ];
 
 export function BottomNav({ active, onChange }: { active: TabKey; onChange: (tab: TabKey) => void }) {
@@ -44,7 +34,7 @@ export function BottomNav({ active, onChange }: { active: TabKey; onChange: (tab
           className={`bottom-nav__item${active === item.key ? ' active' : ''}`}
           onClick={() => onChange(item.key)}
         >
-          {item.icon}
+          <span className="bottom-nav__icon">{item.icon}</span>
           <span>{item.label}</span>
         </button>
       ))}

@@ -86,7 +86,9 @@ export function TimerScreen({ solves, dailyGoal, onRunningChange, onFinishSolve 
     >
       {phase !== 'running' && (
         <div className="timer-top">
-          <div className="scramble-text mono">{scramble}</div>
+          <div className="scramble-chip">
+            <div className="scramble-text mono">{scramble}</div>
+          </div>
           <div className="timer-goal-row">
             {streak > 0 && <span className="badge badge-accent">🔥 {streak}일 연속</span>}
             <span className="badge">

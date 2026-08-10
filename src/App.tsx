@@ -8,7 +8,6 @@ import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
 import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
-import { AlgorithmsScreen } from './features/algorithms/AlgorithmsScreen';
 
 function SunIcon() {
   return (
@@ -159,7 +158,6 @@ export default function App() {
             onClearAll={clearAllSolves}
           />
         )}
-        {activeTab === 'algorithms' && <AlgorithmsScreen />}
       </main>
 
       {showChrome && <BottomNav active={activeTab} onChange={setActiveTab} />}

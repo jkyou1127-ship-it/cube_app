@@ -55,7 +55,7 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
   return (
     <div className="screen">
       <div className="stat-grid">
-        <div className="stat-tile">
+        <div className="stat-tile stat-tile--primary">
           <div className="stat-tile__label">PB</div>
           <div className="stat-tile__value mono">{best ? fmt(effectiveMs(best)) : '-'}</div>
         </div>
