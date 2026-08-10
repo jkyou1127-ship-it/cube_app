@@ -109,6 +109,24 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
         </div>
       </div>
 
+      <div className="section-title">검사 시간</div>
+      <div className="card">
+        <div className="row">
+          <div>
+            <div style={{ fontWeight: 600 }}>검사(인스펙션) 15초</div>
+            <div className="faint">15초 초과 +2, 17초 초과 DNF (WCA 규정)</div>
+          </div>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={settings.inspectionEnabled}
+              onChange={(e) => onUpdateSettings({ inspectionEnabled: e.target.checked })}
+            />
+            <span className="switch-track" />
+          </label>
+        </div>
+      </div>
+
       <div className="section-title">알림</div>
       <div className="card">
         <div className="row">

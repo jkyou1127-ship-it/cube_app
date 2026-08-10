@@ -660,6 +660,25 @@
   color: var(--accent);
 }
 
+.timer-display.inspect-warn {
+  color: var(--amber);
+}
+
+.timer-display.inspect-over {
+  color: var(--red);
+}
+
+.bt-badge {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.bt-badge:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .timer-bottom {
   width: 100%;
   max-width: 560px;
@@ -974,6 +993,73 @@
 .life-canvas {
   touch-action: none;
   cursor: crosshair;
+}
+
+.dvd-wrap {
+  position: relative;
+  height: min(56vh, 460px);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0b0b10;
+  border: 1px solid var(--border);
+}
+
+.dvd-logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.keysound-pad {
+  height: min(52vh, 420px);
+  border: 1px dashed var(--border-strong);
+  border-radius: 20px;
+  background: var(--bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  transition: transform 0.08s ease, background 0.1s ease;
+}
+
+.keysound-pad:active {
+  transform: scale(0.98);
+  background: var(--bg-hover);
+}
+
+.fog-wrap {
+  position: relative;
+  height: min(56vh, 460px);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.fog-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f97316, #ec4899 35%, #7c4dff 70%, #3b82f6);
+  color: #fff;
+  text-align: center;
+}
+
+.fog-canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  cursor: grab;
 }
 
 @keyframes toast-in {

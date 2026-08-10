@@ -46,6 +46,32 @@ function createWindow() {
     return { action: 'deny' };
   });
 
+  // Electron doesn't show a native device picker for navigator.bluetooth.requestDevice()
+  // the way a regular browser does, so it must be resolved here. We pick the first
+  // named device that shows up (the renderer already filters requestDevice() by the
+  // "GAN" name prefix), and give up after a short scan window if nothing is found.
+  let pendingBluetoothCallback = null;
+  let pendingBluetoothTimeout = null;
+
+  mainWindow.webContents.on('select-bluetooth-device', (event, deviceList, callback) => {
+    event.preventDefault();
+    const match = deviceList.find((d) => d.deviceName);
+    if (match) {
+      if (pendingBluetoothTimeout) clearTimeout(pendingBluetoothTimeout);
+      pendingBluetoothCallback = null;
+      callback(match.deviceId);
+      return;
+    }
+    pendingBluetoothCallback = callback;
+    if (!pendingBluetoothTimeout) {
+      pendingBluetoothTimeout = setTimeout(() => {
+        if (pendingBluetoothCallback) pendingBluetoothCallback('');
+        pendingBluetoothCallback = null;
+        pendingBluetoothTimeout = null;
+      }, 8000);
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });

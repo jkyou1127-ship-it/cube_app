@@ -9,6 +9,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reminderEnabled: false,
   reminderTime: '19:00',
   lastOpenedAt: null,
+  inspectionEnabled: true,
 };
 
 function safeParse<T>(raw: string | null, fallback: T): T {

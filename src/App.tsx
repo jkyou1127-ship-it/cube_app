@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import type { Settings, Solve, TabKey } from './types';
+import type { Penalty, Settings, Solve, TabKey } from './types';
 import { loadSettings, loadSolves, makeSolveId, saveSettings, saveSolves } from './lib/storage';
 import { bestOf, effectiveMs } from './lib/stats';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
@@ -76,15 +76,16 @@ export default function App() {
     });
   }
 
-  function addSolve(ms: number, scramble: string) {
+  function addSolve(ms: number, scramble: string, penalty: Penalty = null) {
     const previousBest = bestOf(solves);
-    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty: null };
+    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty };
     const next = [solve, ...solves];
     setSolves(next);
     saveSolves(next);
 
+    const newMs = effectiveMs(solve);
     const prevMs = previousBest ? effectiveMs(previousBest) : null;
-    if (prevMs !== null && ms < prevMs) {
+    if (newMs !== null && prevMs !== null && newMs < prevMs) {
       setConfettiKey((k) => k + 1);
     }
   }
@@ -145,6 +146,7 @@ export default function App() {
           <TimerScreen
             solves={solves}
             dailyGoal={settings.dailyGoal}
+            inspectionEnabled={settings.inspectionEnabled}
             onRunningChange={setRunning}
             onFinishSolve={addSolve}
           />

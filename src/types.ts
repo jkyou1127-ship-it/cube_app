@@ -14,6 +14,7 @@ export interface Settings {
   reminderEnabled: boolean;
   reminderTime: string;
   lastOpenedAt: number | null;
+  inspectionEnabled: boolean;
 }
 
 export type TabKey = 'timer' | 'records' | 'fun';
