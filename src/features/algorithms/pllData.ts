@@ -1,0 +1,182 @@
+export interface PllCase {
+  id: string;
+  name: string;
+  group: string;
+  alg: string;
+  edges: Array<'T' | 'R' | 'B' | 'L'>;
+  corners: Array<'TL' | 'TR' | 'BR' | 'BL'>;
+}
+
+// 21 PLL (last-layer permutation) cases. Algorithms use standard WCA
+// notation (M/S/E slice moves included) - see the disclaimer in the
+// Algorithms tab, especially for the less common letter (a/b) variants.
+export const PLL_CASES: PllCase[] = [
+  {
+    id: 'Aa',
+    name: 'Aa - 코너 3순환',
+    group: '코너만',
+    alg: "x R' U R' D2 R U' R' D2 R2 x'",
+    edges: [],
+    corners: ['TL', 'TR', 'BR'],
+  },
+  {
+    id: 'Ab',
+    name: 'Ab - 코너 3순환',
+    group: '코너만',
+    alg: "x R2 D2 R U R' D2 R U' R x'",
+    edges: [],
+    corners: ['TL', 'TR', 'BL'],
+  },
+  {
+    id: 'E',
+    name: 'E - 코너 대각선 교환',
+    group: '코너만',
+    alg: "x' R U' R' D R U R' D' R U R' D R U' R' D' x",
+    edges: [],
+    corners: ['TL', 'TR', 'BR', 'BL'],
+  },
+  {
+    id: 'F',
+    name: 'F - 코너+모서리',
+    group: '혼합',
+    alg: "R' U' F' R U R' U' R' F R2 U' R' U' R U R' U R",
+    edges: ['T', 'R'],
+    corners: ['TR', 'BR'],
+  },
+  {
+    id: 'Ga',
+    name: 'Ga - 더블 순환',
+    group: 'G 퍼뮤테이션',
+    alg: "R2 U R' U R' U' R U' R2 U' D R' U R D'",
+    edges: ['T', 'R', 'B'],
+    corners: ['TL', 'TR', 'BR'],
+  },
+  {
+    id: 'Gb',
+    name: 'Gb - 더블 순환',
+    group: 'G 퍼뮤테이션',
+    alg: "R' U' R U D' R2 U R' U R U' R U' R2 D",
+    edges: ['T', 'R', 'L'],
+    corners: ['TL', 'TR', 'BL'],
+  },
+  {
+    id: 'Gc',
+    name: 'Gc - 더블 순환',
+    group: 'G 퍼뮤테이션',
+    alg: "R2 U' R U' R U R' U R2 U D' R U' R' D",
+    edges: ['T', 'B', 'L'],
+    corners: ['TL', 'BR', 'BL'],
+  },
+  {
+    id: 'Gd',
+    name: 'Gd - 더블 순환',
+    group: 'G 퍼뮤테이션',
+    alg: "R U R' U' D R2 U' R U' R' U R' U R2 D'",
+    edges: ['R', 'B', 'L'],
+    corners: ['TR', 'BR', 'BL'],
+  },
+  {
+    id: 'H',
+    name: 'H - 반대편 모서리 교환',
+    group: '모서리만',
+    alg: 'M2 U M2 U2 M2 U M2',
+    edges: ['T', 'R', 'B', 'L'],
+    corners: [],
+  },
+  {
+    id: 'Ja',
+    name: 'Ja - 인접 교환',
+    group: 'J 퍼뮤테이션',
+    alg: "R' U L' U2 R U' R' U2 R L",
+    edges: ['T', 'L'],
+    corners: ['TL', 'TR'],
+  },
+  {
+    id: 'Jb',
+    name: 'Jb - 인접 교환',
+    group: 'J 퍼뮤테이션',
+    alg: "R U R' F' R U R' U' R' F R2 U' R'",
+    edges: ['T', 'R'],
+    corners: ['TR', 'BR'],
+  },
+  {
+    id: 'Na',
+    name: 'Na - 코너 교환',
+    group: 'N 퍼뮤테이션',
+    alg: "R U R' U R U R' F' R U R' U' R' F R2 U' R U2 R' U' R",
+    edges: ['T'],
+    corners: ['TL', 'BR'],
+  },
+  {
+    id: 'Nb',
+    name: 'Nb - 코너 교환',
+    group: 'N 퍼뮤테이션',
+    alg: "R' U R U' R' F' U' F R U R' F R' F' R U' R",
+    edges: ['T'],
+    corners: ['TR', 'BL'],
+  },
+  {
+    id: 'Ra',
+    name: 'Ra - 코너+모서리',
+    group: 'R 퍼뮤테이션',
+    alg: "R U' R' U' R U R D R' U' R D' R' U2 R'",
+    edges: ['T', 'B'],
+    corners: ['TL', 'TR'],
+  },
+  {
+    id: 'Rb',
+    name: 'Rb - 코너+모서리',
+    group: 'R 퍼뮤테이션',
+    alg: "R' U2 R U2 R' F R U R' U' R' F' R2",
+    edges: ['T', 'B'],
+    corners: ['TR', 'BR'],
+  },
+  {
+    id: 'T',
+    name: 'T - 인접 교환',
+    group: '기본',
+    alg: "R U R' U' R' F R2 U' R' U' R U R' F'",
+    edges: ['T', 'R'],
+    corners: ['TR', 'BR'],
+  },
+  {
+    id: 'V',
+    name: 'V - 대각선 교환',
+    group: '혼합',
+    alg: "R' U R' U' y R' F' R2 U' R' U R' F R F",
+    edges: ['T'],
+    corners: ['TL', 'BR'],
+  },
+  {
+    id: 'Y',
+    name: 'Y - 대각선 교환',
+    group: '혼합',
+    alg: "F R U' R' U' R U R' F' R U R' U' R' F R F'",
+    edges: ['T'],
+    corners: ['TR', 'BL'],
+  },
+  {
+    id: 'Z',
+    name: 'Z - 인접 모서리 교환',
+    group: '모서리만',
+    alg: "M' U M2 U M2 U M' U2 M2",
+    edges: ['T', 'R', 'B', 'L'],
+    corners: [],
+  },
+  {
+    id: 'Ua',
+    name: 'Ua - 3순환 (모서리)',
+    group: '모서리만',
+    alg: "M2 U M U2 M' U M2",
+    edges: ['T', 'R', 'L'],
+    corners: [],
+  },
+  {
+    id: 'Ub',
+    name: 'Ub - 3순환 (모서리)',
+    group: '모서리만',
+    alg: "M2 U' M U2 M' U' M2",
+    edges: ['T', 'R', 'L'],
+    corners: [],
+  },
+];
