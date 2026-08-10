@@ -2,6 +2,8 @@ import type { Penalty, Settings, Solve } from '../../types';
 import { average, bestOf, computeStreak, effectiveMs, sessionMean, todayCount } from '../../lib/stats';
 import { formatTime } from '../../lib/time';
 import { isNotificationSupported, requestNotificationPermission } from '../../lib/notifications';
+import { MASCOT_CHARACTERS } from '../../lib/mascotCharacters';
+import { PixelMascot } from '../../components/PixelMascot';
 import { SolveRow } from './SolveRow';
 
 interface Props {
@@ -106,6 +108,22 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
               +
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="section-title">마스코트</div>
+      <div className="card">
+        <div className="mascot-picker">
+          {MASCOT_CHARACTERS.map((c) => (
+            <button
+              key={c.id}
+              className={`mascot-picker__item${settings.mascotCharacter === c.id ? ' active' : ''}`}
+              onClick={() => onUpdateSettings({ mascotCharacter: c.id })}
+            >
+              <PixelMascot characterId={c.id} size={5} interactive={false} />
+              <span>{c.name}</span>
+            </button>
+          ))}
         </div>
       </div>
 

@@ -10,6 +10,7 @@ export const DEFAULT_SETTINGS: Settings = {
   reminderTime: '19:00',
   lastOpenedAt: null,
   inspectionEnabled: true,
+  mascotCharacter: 'blob-blue',
 };
 
 function safeParse<T>(raw: string | null, fallback: T): T {

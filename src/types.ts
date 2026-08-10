@@ -1,3 +1,5 @@
+import type { CharacterId } from './lib/mascotCharacters';
+
 export type Penalty = null | '+2' | 'DNF';
 
 export interface Solve {
@@ -15,6 +17,7 @@ export interface Settings {
   reminderTime: string;
   lastOpenedAt: number | null;
   inspectionEnabled: boolean;
+  mascotCharacter: CharacterId;
 }
 
 export type TabKey = 'timer' | 'records' | 'fun';

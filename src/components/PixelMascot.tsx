@@ -1,29 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-
-// 12x13 pixel-art sprite. '.' = transparent.
-const SPRITE = [
-  '....BBBB....',
-  '..BBBBBBBB..',
-  '.BBBBBBBBBB.',
-  'BBBBBBBBBBBB',
-  'BBWKBBBBKWBB',
-  'BBPBBBBBBPBB',
-  'BBBKBBBBKBBB',
-  'BBBBKKKKBBBB',
-  'BBBBBBBBBBBB',
-  '.BBBBBBBBBB.',
-  '..DDDDDDDD..',
-  '...DD..DD...',
-  '...KK..KK...',
-];
-
-const COLORS: Record<string, string> = {
-  B: '#6c8cff',
-  D: '#3f5fe0',
-  K: '#22243a',
-  W: '#ffffff',
-  P: '#ff9ec4',
-};
+import { getCharacter, type CharacterId } from '../lib/mascotCharacters';
 
 const LINES = [
   '화이팅!',
@@ -35,7 +11,15 @@ const LINES = [
   '눈 깜빡할 새 지나가요',
 ];
 
-export function PixelMascot() {
+export function PixelMascot({
+  characterId = 'blob-blue',
+  size = 10,
+  interactive = true,
+}: {
+  characterId?: CharacterId;
+  size?: number;
+  interactive?: boolean;
+}) {
   const [bubble, setBubble] = useState<string | null>(null);
   const timeoutRef = useRef<number>(0);
 
@@ -49,9 +33,24 @@ export function PixelMascot() {
     timeoutRef.current = window.setTimeout(() => setBubble(null), 2400);
   }
 
-  const cell = 6;
-  const w = SPRITE[0].length * cell;
-  const h = SPRITE.length * cell;
+  const character = getCharacter(characterId);
+  const w = character.sprite[0].length * size;
+  const h = character.sprite.length * size;
+
+  const sprite = (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="mascot__sprite">
+      {character.sprite.map((row, r) =>
+        row.split('').map((code, c) => {
+          if (code === '.') return null;
+          return <rect key={`${r}-${c}`} x={c * size} y={r * size} width={size} height={size} fill={character.colors[code]} />;
+        })
+      )}
+    </svg>
+  );
+
+  if (!interactive) {
+    return <div className="mascot mascot--static">{sprite}</div>;
+  }
 
   return (
     <div
@@ -63,14 +62,7 @@ export function PixelMascot() {
       aria-label="마스코트"
     >
       {bubble && <div className="mascot__bubble">{bubble}</div>}
-      <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="mascot__sprite">
-        {SPRITE.map((row, r) =>
-          row.split('').map((code, c) => {
-            if (code === '.') return null;
-            return <rect key={`${r}-${c}`} x={c * cell} y={r * cell} width={cell} height={cell} fill={COLORS[code]} />;
-          })
-        )}
-      </svg>
+      {sprite}
     </div>
   );
 }

@@ -34,6 +34,7 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [confettiKey, setConfettiKey] = useState(0);
   const [showComeback, setShowComeback] = useState(false);
+  const [lastSolveId, setLastSolveId] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
@@ -82,6 +83,7 @@ export default function App() {
     const next = [solve, ...solves];
     setSolves(next);
     saveSolves(next);
+    setLastSolveId(solve.id);
 
     const newMs = effectiveMs(solve);
     const prevMs = previousBest ? effectiveMs(previousBest) : null;
@@ -147,8 +149,11 @@ export default function App() {
             solves={solves}
             dailyGoal={settings.dailyGoal}
             inspectionEnabled={settings.inspectionEnabled}
+            characterId={settings.mascotCharacter}
+            lastSolveId={lastSolveId}
             onRunningChange={setRunning}
             onFinishSolve={addSolve}
+            onUpdatePenalty={updateSolvePenalty}
           />
         )}
         {activeTab === 'records' && (

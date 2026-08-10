@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Penalty, Solve } from '../../types';
 import { generateScramble } from '../../lib/scramble';
-import { formatTime } from '../../lib/time';
+import { formatSolveResult, formatTime } from '../../lib/time';
 import { randomQuote } from '../../lib/quotes';
-import { computeStreak, todayCount as computeTodayCount } from '../../lib/stats';
+import { bestOf, computeStreak, effectiveMs, todayCount as computeTodayCount } from '../../lib/stats';
 import { GanTimerConnection } from '../../lib/ganTimer';
 import { PixelMascot } from '../../components/PixelMascot';
+import type { CharacterId } from '../../lib/mascotCharacters';
 
 type Phase = 'idle' | 'armed' | 'inspecting' | 'inspecting-armed' | 'running';
 
@@ -16,18 +17,31 @@ interface Props {
   solves: Solve[];
   dailyGoal: number;
   inspectionEnabled: boolean;
+  characterId: CharacterId;
+  lastSolveId: string | null;
   onRunningChange: (running: boolean) => void;
   onFinishSolve: (ms: number, scramble: string, penalty: Penalty) => void;
+  onUpdatePenalty: (id: string, penalty: Penalty) => void;
 }
 
 const bluetoothSupported = typeof navigator !== 'undefined' && 'bluetooth' in navigator;
 
-export function TimerScreen({ solves, dailyGoal, inspectionEnabled, onRunningChange, onFinishSolve }: Props) {
+export function TimerScreen({
+  solves,
+  dailyGoal,
+  inspectionEnabled,
+  characterId,
+  lastSolveId,
+  onRunningChange,
+  onFinishSolve,
+  onUpdatePenalty,
+}: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [scramble, setScramble] = useState(() => generateScramble());
   const [elapsedMs, setElapsedMs] = useState(0);
   const [inspectMs, setInspectMs] = useState(0);
   const [lastResultMs, setLastResultMs] = useState<number | null>(null);
+  const [lastPenalty, setLastPenalty] = useState<Penalty>(null);
   const [resultPending, setResultPending] = useState(false);
   const [quote, setQuote] = useState(() => randomQuote());
   const [btConnected, setBtConnected] = useState(false);
@@ -109,11 +123,17 @@ export function TimerScreen({ solves, dailyGoal, inspectionEnabled, onRunningCha
     setPhase('idle');
     onRunningChange(false);
     setLastResultMs(ms);
+    setLastPenalty(penalty);
     setResultPending(true);
     onFinishSolve(ms, scramble, penalty);
     setScramble(generateScramble());
     setQuote(randomQuote());
     pendingPenaltyRef.current = null;
+  }
+
+  function applyQuickPenalty(penalty: Penalty) {
+    setLastPenalty(penalty);
+    if (lastSolveId) onUpdatePenalty(lastSolveId, penalty);
   }
 
   function handlePointerDown(e: React.PointerEvent) {
@@ -191,6 +211,11 @@ export function TimerScreen({ solves, dailyGoal, inspectionEnabled, onRunningCha
   const streak = computeStreak(solves, dailyGoal);
   const today = computeTodayCount(solves);
 
+  const best = bestOf(solves);
+  const pbMs = best ? effectiveMs(best) : null;
+  const pbProgress = phase === 'running' && pbMs ? Math.min(1, elapsedMs / pbMs) : null;
+  const pbDiffMs = phase === 'running' && pbMs ? elapsedMs - pbMs : null;
+
   return (
     <div
       className={`timer-screen ${chromeHidden ? 'timer-screen--running' : 'timer-screen--idle'}`}
@@ -201,6 +226,11 @@ export function TimerScreen({ solves, dailyGoal, inspectionEnabled, onRunningCha
     >
       {showTop && (
         <div className="timer-top">
+          {showBottom && (
+            <div className="timer-mascot-slot">
+              <PixelMascot characterId={characterId} size={11} />
+            </div>
+          )}
           <div className="scramble-chip">
             <div className="scramble-text mono">{scramble}</div>
           </div>
@@ -234,18 +264,43 @@ export function TimerScreen({ solves, dailyGoal, inspectionEnabled, onRunningCha
         </div>
       )}
 
-      {showBottom && (
-        <div className="timer-mascot-slot">
-          <PixelMascot />
-        </div>
-      )}
-
       {inspecting ? (
         <div className={`timer-display mono ${inspectRemaining <= 0 ? 'inspect-over' : inspectRemaining <= 3 ? 'inspect-warn' : ''}`}>
           {inspectRemaining > 0 ? Math.ceil(inspectRemaining) : '+2'}
         </div>
       ) : (
-        <div className={`timer-display mono ${phase}`}>{formatTime(displayMs)}</div>
+        <div className={`timer-display mono ${phase}`}>
+          {phase === 'idle' && lastResultMs !== null ? formatSolveResult(lastResultMs, lastPenalty) : formatTime(displayMs)}
+        </div>
+      )}
+
+      {phase === 'running' && pbProgress !== null && pbDiffMs !== null && (
+        <div className="pb-race">
+          <div className="pb-race__bar">
+            <div
+              className={`pb-race__fill${pbDiffMs >= 0 ? ' pb-race__fill--over' : ''}`}
+              style={{ width: `${pbProgress * 100}%` }}
+            />
+          </div>
+          <div className={`pb-race__label${pbDiffMs >= 0 ? ' pb-race__label--over' : ''}`}>
+            PB {pbDiffMs >= 0 ? '+' : '-'}
+            {formatTime(Math.abs(pbDiffMs))}
+          </div>
+        </div>
+      )}
+
+      {resultPending && phase === 'idle' && (
+        <div className="quick-penalty" onPointerDown={(e) => e.stopPropagation()}>
+          <button className={`btn btn-sm${lastPenalty === null ? ' btn-primary' : ''}`} onClick={() => applyQuickPenalty(null)}>
+            OK
+          </button>
+          <button className={`btn btn-sm${lastPenalty === '+2' ? ' btn-primary' : ''}`} onClick={() => applyQuickPenalty('+2')}>
+            +2
+          </button>
+          <button className={`btn btn-sm${lastPenalty === 'DNF' ? ' btn-primary' : ''}`} onClick={() => applyQuickPenalty('DNF')}>
+            DNF
+          </button>
+        </div>
       )}
 
       {showBottom && (
