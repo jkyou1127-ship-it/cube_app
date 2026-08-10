@@ -4,6 +4,7 @@ import { generateScramble } from '../../lib/scramble';
 import { formatTime } from '../../lib/time';
 import { randomQuote } from '../../lib/quotes';
 import { computeStreak, todayCount as computeTodayCount } from '../../lib/stats';
+import { PixelMascot } from '../../components/PixelMascot';
 
 type Phase = 'idle' | 'armed' | 'running';
 
@@ -95,6 +96,12 @@ export function TimerScreen({ solves, dailyGoal, onRunningChange, onFinishSolve 
               오늘 {today}/{dailyGoal}
             </span>
           </div>
+        </div>
+      )}
+
+      {phase !== 'running' && (
+        <div className="timer-mascot-slot">
+          <PixelMascot />
         </div>
       )}
 

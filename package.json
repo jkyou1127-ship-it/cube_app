@@ -2,6 +2,8 @@
   "name": "cube_app",
   "private": true,
   "version": "0.1.0",
+  "description": "큐브 연습 타이머 - 스크램블, 기록/통계, 심심풀이 미니게임",
+  "author": "cube_app",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
@@ -37,6 +39,7 @@
     "appId": "com.cubeapp.practice",
     "productName": "큐브 연습",
     "copyright": "Copyright © 2026",
+    "publish": null,
     "files": [
       "dist/**/*",
       "electron/**/*"

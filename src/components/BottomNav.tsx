@@ -23,6 +23,15 @@ const ITEMS: { key: TabKey; label: string; icon: ReactElement }[] = [
       </svg>
     ),
   },
+  {
+    key: 'fun',
+    label: '심심풀이',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l2.4 5.4L20 9l-4.6 3.6L17 18l-5-3.2L7 18l1.6-5.4L4 9l5.6-1.6z" />
+      </svg>
+    ),
+  },
 ];
 
 export function BottomNav({ active, onChange }: { active: TabKey; onChange: (tab: TabKey) => void }) {

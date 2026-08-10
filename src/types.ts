@@ -16,4 +16,4 @@ export interface Settings {
   lastOpenedAt: number | null;
 }
 
-export type TabKey = 'timer' | 'records';
+export type TabKey = 'timer' | 'records' | 'fun';
