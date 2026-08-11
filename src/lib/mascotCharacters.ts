@@ -19,7 +19,10 @@ export type CharacterId =
   | 'bunny-mint'
   | 'bunny-lime'
   | 'bunny-sky'
-  | 'bunny-yellow';
+  | 'bunny-yellow'
+  | 'bunny-purple'
+  | 'bunny-red'
+  | 'bunny-orange';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -146,6 +149,9 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'bunny-lime', name: '연두 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.lime },
   { id: 'bunny-sky', name: '하늘 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.sky },
   { id: 'bunny-yellow', name: '노랑 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.yellow },
+  { id: 'bunny-purple', name: '라벤더 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.purple },
+  { id: 'bunny-red', name: '레드 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.red },
+  { id: 'bunny-orange', name: '오렌지 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.orange },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {
