@@ -289,6 +289,15 @@ export function TimerScreen({
           stoppedRecentlyRef.current = true;
           latestRef.current.finish(ms, pendingPenaltyRef.current);
         },
+        onFinished: () => {
+          // last-resort stop fallback: on some units the STOPPED packet doesn't parse
+          // (or never arrives) but FINISHED always follows right after a real stop -
+          // if we're still "running" by this point, use the app's own clock to close
+          // out the solve rather than leaving the display stuck mid-count
+          if (latestRef.current.phase !== 'running') return;
+          stoppedRecentlyRef.current = true;
+          latestRef.current.stopTimer();
+        },
         onIdle: () => {
           // the round center logo button resets the display to 0.00 - this fires as an
           // IDLE broadcast. First press after a solve just acknowledges the pending
