@@ -69,6 +69,7 @@ export function getTheme(id: ThemeId): ThemeDef {
   return THEMES.find((t) => t.id === id) ?? THEMES[0];
 }
 
-export function visibleThemes(unlockedSecretIds: Set<string>): ThemeDef[] {
-  return THEMES.filter((t) => !t.secret || unlockedSecretIds.has(t.id));
+/** a secret theme is only selectable while the matching mascot is equipped */
+export function visibleThemes(currentCharacterId: string): ThemeDef[] {
+  return THEMES.filter((t) => !t.secret || t.id === currentCharacterId);
 }

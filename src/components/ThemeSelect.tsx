@@ -4,16 +4,16 @@ import { getTheme, visibleThemes, type ThemeId } from '../lib/themes';
 export function ThemeSelect({
   value,
   onChange,
-  unlockedSecrets,
+  currentCharacterId,
 }: {
   value: ThemeId;
   onChange: (id: ThemeId) => void;
-  unlockedSecrets: Set<string>;
+  currentCharacterId: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const current = getTheme(value);
-  const themes = visibleThemes(unlockedSecrets);
+  const themes = visibleThemes(currentCharacterId);
 
   useEffect(() => {
     if (!open) return;

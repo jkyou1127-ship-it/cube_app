@@ -265,7 +265,7 @@ export default function App() {
                 onRequestDelete={() => setDeleteModalOpen(true)}
               />
             )}
-            <ThemeSelect value={settings.theme} onChange={changeTheme} unlockedSecrets={unlockedSecrets} />
+            <ThemeSelect value={settings.theme} onChange={changeTheme} currentCharacterId={settings.mascotCharacter} />
           </div>
         </header>
       )}

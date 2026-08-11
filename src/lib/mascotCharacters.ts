@@ -279,7 +279,7 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     sprite: LIGHTNING_CUBE_SPRITE,
     colors: PALETTES.volt,
     secret: true,
-    quotes: ['번쩍! 빠르게 가자!', '검사 시간 따위 필요없어!', '속도가 생명이다', '찌릿찌릿하지?', '느린 건 못 참아'],
+    quotes: ['번쩍! 빠르게 가자!', '속도가 생명이다', '찌릿찌릿하지?', '느린 건 못 참아'],
   },
 ];
 
