@@ -50,7 +50,7 @@ export const EVENTS: EventDef[] = [
   { id: 'skewb', name: '스큐브', usesInspection: true, wellEstablishedNotation: true, generateScramble: generateSkewbScramble },
   { id: 'minx', name: '메가밍크스', usesInspection: true, wellEstablishedNotation: false, generateScramble: generateMegaminxScramble },
   { id: 'sq1', name: '스퀘어-1', usesInspection: true, wellEstablishedNotation: true, generateScramble: generateSquareOneScramble },
-  { id: 'clock', name: 'Clock', usesInspection: true, wellEstablishedNotation: false, generateScramble: generateClockScramble },
+  { id: 'clock', name: 'Clock', usesInspection: true, wellEstablishedNotation: true, generateScramble: generateClockScramble },
 ];
 
 export function getEvent(id: EventId): EventDef {

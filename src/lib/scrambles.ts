@@ -5,10 +5,11 @@
  * random-state scramblers (real WCA competitions use TNoodle, which is out
  * of scope here - see the note in scramble.ts / the disclaimer shown for
  * the less common puzzles). For NxN cubes this produces well-mixed,
- * reasonably-sized scrambles. For Megaminx / Clock the exact official
- * notation is more intricate; these generators produce a structurally-similar,
- * best-effort approximation for practice purposes. Square-1 simulates the
- * actual layer state so every "/" it emits is physically executable.
+ * reasonably-sized scrambles. For Megaminx the exact official notation is
+ * more intricate; this generator produces a structurally-similar, best-effort
+ * approximation for practice purposes. Square-1 simulates the actual layer
+ * state so every "/" it emits is physically executable, and Clock is ported
+ * directly from TNoodle's own random-move algorithm (ClockPuzzle.generateRandomMoves).
  */
 
 const AXIS6: Record<string, number> = { U: 0, D: 0, L: 1, R: 1, F: 2, B: 2 };
@@ -169,8 +170,20 @@ export function generateSquareOneScramble(): string {
   return groups.join(' / ');
 }
 
+// Ported from the official WCA scrambler (TNoodle's ClockPuzzle.generateRandomMoves):
+// all 9 pin/dial moves on the front, a y2 flip, then only the 5 moves that are
+// still reachable on the back (U/R/D/L/ALL - the 4 corner pins stay as the front
+// left them, so UR/DR/DL/UL aren't independently turned again).
+const CLOCK_MOVES = ['UR', 'DR', 'DL', 'UL', 'U', 'R', 'D', 'L', 'ALL'];
+
+function clockMove(name: string): string {
+  const turn = Math.floor(Math.random() * 12) - 5; // -5..6
+  const clockwise = turn >= 0;
+  return `${name}${Math.abs(turn)}${clockwise ? '+' : '-'}`;
+}
+
 export function generateClockScramble(): string {
-  const pins = ['UR', 'DR', 'DL', 'UL', 'U', 'R', 'D', 'L', 'ALL'];
-  const side = () => pins.map((p) => `${p}${Math.floor(Math.random() * 12)}${Math.random() < 0.5 ? '+' : '-'}`).join(' ');
-  return `${side()}\ny2\n${side()}`;
+  const front = CLOCK_MOVES.map(clockMove).join(' ');
+  const back = CLOCK_MOVES.slice(4).map(clockMove).join(' ');
+  return `${front} y2 ${back}`;
 }
