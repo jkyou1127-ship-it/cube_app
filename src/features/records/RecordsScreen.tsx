@@ -3,7 +3,7 @@ import type { Penalty, Session, Settings, Solve } from '../../types';
 import { average, bestOf, computeStreak, effectiveMs, sessionMean, todayCount } from '../../lib/stats';
 import { formatTime } from '../../lib/time';
 import { isNotificationSupported, requestNotificationPermission } from '../../lib/notifications';
-import { MASCOT_CHARACTERS } from '../../lib/mascotCharacters';
+import { visibleCharacters } from '../../lib/mascotCharacters';
 import { PixelMascot } from '../../components/PixelMascot';
 import { getEvent } from '../../lib/events';
 import { SolveRow } from './SolveRow';
@@ -12,6 +12,7 @@ interface Props {
   solves: Solve[];
   sessions: Session[];
   settings: Settings;
+  ripSq1Unlocked: boolean;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onUpdatePenalty: (id: string, penalty: Penalty) => void;
   onDeleteSolve: (id: string) => void;
@@ -38,6 +39,7 @@ export function RecordsScreen({
   solves,
   sessions,
   settings,
+  ripSq1Unlocked,
   onUpdateSettings,
   onUpdatePenalty,
   onDeleteSolve,
@@ -214,7 +216,7 @@ export function RecordsScreen({
       <div className="section-title">마스코트</div>
       <div className="card">
         <div className="mascot-picker">
-          {MASCOT_CHARACTERS.map((c) => (
+          {visibleCharacters(ripSq1Unlocked).map((c) => (
             <button
               key={c.id}
               className={`mascot-picker__item${settings.mascotCharacter === c.id ? ' active' : ''}`}

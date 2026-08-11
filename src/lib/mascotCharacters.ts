@@ -109,21 +109,21 @@ const BUNNY_SPRITE = [
   '...KK..KK...',
 ];
 
-// a little tombstone, in loving memory of the Square-1 event
-const TOMBSTONE_SPRITE = [
-  '...BBBBBB...',
+// a cute little floating ghost - the friendly spirit of the departed Square-1 event
+const GHOST_SPRITE = [
+  '....BBBB....',
   '..BBBBBBBB..',
   '.BBBBBBBBBB.',
   'BBBBBBBBBBBB',
-  'BBBBBBBBBBBB',
-  'BBBBBKKBBBBB',
-  'BBBBBKKBBBBB',
-  'BBKKKKKKKKBB',
-  'BBBBBKKBBBBB',
-  'BBBBBKKBBBBB',
+  'BBWKBBBBKWBB',
+  'BBPBBBBBBPBB',
+  'BBBKBBBBKBBB',
+  'BBBBKKKKBBBB',
   'BBBBBBBBBBBB',
   'BBBBBBBBBBBB',
-  'DDDDDDDDDDDD',
+  'BBBBBBBBBBBB',
+  'BBBB.BB.BBBB',
+  'BBB...B...BB',
 ];
 
 const PALETTES: Record<string, Record<string, string>> = {
@@ -137,6 +137,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   orange: { B: '#ff9f43', D: '#e8791a', K: '#3a2308', W: '#ffffff', P: '#ffe4c2' },
   sky: { B: '#5ec8f2', D: '#2ea3d6', K: '#0f2a38', W: '#ffffff', P: '#dff5ff' },
   stone: { B: '#b8bcc4', D: '#8b909c', K: '#4a4e58', W: '#ffffff', P: '#d8dbe0' },
+  ghost: { B: '#f1edff', D: '#d8cdfa', K: '#4a4460', W: '#ffffff', P: '#ffd1e8' },
 };
 
 export interface MascotCharacter {
@@ -171,9 +172,14 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'bunny-purple', name: '라벤더 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.purple },
   { id: 'bunny-red', name: '레드 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.red },
   { id: 'bunny-orange', name: '오렌지 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.orange },
-  { id: 'rip-sq1', name: 'RIP 스퀘어-1', sprite: TOMBSTONE_SPRITE, colors: PALETTES.stone },
+  { id: 'rip-sq1', name: '스퀘어-1 유령', sprite: GHOST_SPRITE, colors: PALETTES.ghost },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {
   return MASCOT_CHARACTERS.find((c) => c.id === id) ?? MASCOT_CHARACTERS[0];
+}
+
+/** 'rip-sq1' is a hidden easter-egg character - excluded from the picker unless unlocked. */
+export function visibleCharacters(includeSecret: boolean): MascotCharacter[] {
+  return includeSecret ? MASCOT_CHARACTERS : MASCOT_CHARACTERS.filter((c) => c.id !== 'rip-sq1');
 }

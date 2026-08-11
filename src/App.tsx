@@ -19,6 +19,7 @@ import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
 import { getTheme } from './lib/themes';
+import { isRipSq1Unlocked, trackEventChange, trackThemeChange } from './lib/easterEgg';
 
 function mergeSolves(local: Solve[], remote: Solve[]): Solve[] {
   const byId = new Map(local.map((s) => [s.id, s]));
@@ -37,6 +38,7 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [ripSq1Unlocked, setRipSq1Unlocked] = useState(() => isRipSq1Unlocked());
   const [sessions, setSessionsState] = useState<Session[]>(() => {
     const initial = ensureDefaultSession(loadSessions(), loadSettings().currentEvent);
     saveSessions(initial);
@@ -179,9 +181,15 @@ export default function App() {
   }
 
   function changeEvent(id: Settings['currentEvent']) {
+    trackEventChange(id);
     const resolved = resolveSessionForEvent(sessions, id);
     if (resolved.sessions !== sessions) setSessions(resolved.sessions);
     updateSettings({ currentEvent: id, currentSessionId: resolved.sessionId });
+  }
+
+  function changeTheme(id: Settings['theme']) {
+    trackThemeChange(id, () => setRipSq1Unlocked(true));
+    updateSettings({ theme: id });
   }
 
   function createSession(name: string) {
@@ -234,7 +242,7 @@ export default function App() {
                 onRequestDelete={() => setDeleteModalOpen(true)}
               />
             )}
-            <ThemeSelect value={settings.theme} onChange={(id) => updateSettings({ theme: id })} />
+            <ThemeSelect value={settings.theme} onChange={changeTheme} />
           </div>
         </header>
       )}
@@ -282,6 +290,7 @@ export default function App() {
             solves={solves}
             sessions={sessions}
             settings={settings}
+            ripSq1Unlocked={ripSq1Unlocked}
             onUpdateSettings={updateSettings}
             onUpdatePenalty={updateSolvePenalty}
             onDeleteSolve={deleteSolve}
