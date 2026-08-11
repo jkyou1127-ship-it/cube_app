@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
-import type { Penalty, Settings, Solve, TabKey } from './types';
+import type { Penalty, Session, Settings, Solve, TabKey } from './types';
 import { loadSettings, loadSolves, makeSolveId, saveSettings, saveSolves } from './lib/storage';
+import { ensureDefaultSession, loadSessions, makeSessionId, resolveSessionForEvent, saveSessions } from './lib/sessions';
 import { bestOf, effectiveMs } from './lib/stats';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
 import { firebaseConfigured } from './lib/firebase';
@@ -34,8 +35,18 @@ export default function App() {
   const [lastSolveId, setLastSolveId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [sessions, setSessionsState] = useState<Session[]>(() => {
+    const initial = ensureDefaultSession(loadSessions(), loadSettings().currentEvent);
+    saveSessions(initial);
+    return initial;
+  });
   const solvesRef = useRef(solves);
   solvesRef.current = solves;
+
+  function setSessions(next: Session[]) {
+    setSessionsState(next);
+    saveSessions(next);
+  }
 
   useEffect(() => {
     if (!firebaseConfigured) return;
@@ -123,8 +134,9 @@ export default function App() {
 
   function addSolve(ms: number, scramble: string, penalty: Penalty = null) {
     const eventId = settings.currentEvent;
-    const previousBest = bestOf(solves.filter((s) => s.event === eventId));
-    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty, event: eventId };
+    const sessionId = settings.currentSessionId;
+    const previousBest = bestOf(solves.filter((s) => s.event === eventId && s.sessionId === sessionId));
+    const solve: Solve = { id: makeSolveId(), ms, scramble, date: Date.now(), penalty, event: eventId, sessionId };
     const next = [solve, ...solves];
     setSolves(next);
     saveSolves(next);
@@ -156,12 +168,50 @@ export default function App() {
   }
 
   function clearAllSolves() {
-    const eventId = settings.currentEvent;
-    const removedIds = solves.filter((s) => s.event === eventId).map((s) => s.id);
-    const next = solves.filter((s) => s.event !== eventId);
+    const sessionId = settings.currentSessionId;
+    const removedIds = solves.filter((s) => s.sessionId === sessionId).map((s) => s.id);
+    const next = solves.filter((s) => s.sessionId !== sessionId);
     setSolves(next);
     saveSolves(next);
     if (user) deleteAllCloudSolves(user.uid, removedIds).catch(() => {});
+  }
+
+  function changeEvent(id: Settings['currentEvent']) {
+    const resolved = resolveSessionForEvent(sessions, id);
+    if (resolved.sessions !== sessions) setSessions(resolved.sessions);
+    updateSettings({ currentEvent: id, currentSessionId: resolved.sessionId });
+  }
+
+  function createSession(name: string) {
+    const session: Session = { id: makeSessionId(), event: settings.currentEvent, name, createdAt: Date.now() };
+    setSessions([...sessions, session]);
+    updateSettings({ currentSessionId: session.id });
+  }
+
+  function switchSession(id: string) {
+    updateSettings({ currentSessionId: id });
+  }
+
+  function renameSession(id: string, name: string) {
+    setSessions(sessions.map((s) => (s.id === id ? { ...s, name } : s)));
+  }
+
+  function deleteSession(id: string) {
+    const target = sessions.find((s) => s.id === id);
+    const remaining = sessions.filter((s) => s.id !== id);
+    const removedIds = solves.filter((s) => s.sessionId === id).map((s) => s.id);
+    const nextSolves = solves.filter((s) => s.sessionId !== id);
+    setSolves(nextSolves);
+    saveSolves(nextSolves);
+    if (user && removedIds.length > 0) deleteAllCloudSolves(user.uid, removedIds).catch(() => {});
+
+    if (settings.currentSessionId === id) {
+      const resolved = resolveSessionForEvent(remaining, target?.event ?? settings.currentEvent);
+      setSessions(resolved.sessions);
+      updateSettings({ currentSessionId: resolved.sessionId });
+    } else {
+      setSessions(remaining);
+    }
   }
 
   const showChrome = !running;
@@ -173,7 +223,7 @@ export default function App() {
           <div className="app-header__title">
             🧊<span className="app-header__beta">BETA 3.5</span>
           </div>
-          <EventSelect value={settings.currentEvent} onChange={(id) => updateSettings({ currentEvent: id })} />
+          <EventSelect value={settings.currentEvent} onChange={changeEvent} />
           <div className="app-header__actions">
             {firebaseConfigured && <AccountButton user={user} onRequestLogin={() => setAuthModalOpen(true)} />}
             <ThemeSelect value={settings.theme} onChange={(id) => updateSettings({ theme: id })} />
@@ -215,11 +265,16 @@ export default function App() {
         {activeTab === 'records' && (
           <RecordsScreen
             solves={solves}
+            sessions={sessions}
             settings={settings}
             onUpdateSettings={updateSettings}
             onUpdatePenalty={updateSolvePenalty}
             onDeleteSolve={deleteSolve}
             onClearAll={clearAllSolves}
+            onCreateSession={createSession}
+            onSwitchSession={switchSession}
+            onRenameSession={renameSession}
+            onDeleteSession={deleteSession}
           />
         )}
         {activeTab === 'fun' && <FunScreen />}

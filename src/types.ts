@@ -11,6 +11,14 @@ export interface Solve {
   date: number;
   penalty: Penalty;
   event: EventId;
+  sessionId: string;
+}
+
+export interface Session {
+  id: string;
+  event: EventId;
+  name: string;
+  createdAt: number;
 }
 
 export interface Settings {
@@ -22,6 +30,7 @@ export interface Settings {
   inspectionEnabled: boolean;
   mascotCharacter: CharacterId;
   currentEvent: EventId;
+  currentSessionId: string;
 }
 
 export type TabKey = 'timer' | 'records' | 'fun';

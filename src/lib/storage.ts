@@ -1,4 +1,5 @@
 import type { Settings, Solve } from '../types';
+import { defaultSessionId } from './sessions';
 
 const SOLVES_KEY = 'cube_app.solves.v1';
 const SETTINGS_KEY = 'cube_app.settings.v1';
@@ -12,6 +13,7 @@ export const DEFAULT_SETTINGS: Settings = {
   inspectionEnabled: true,
   mascotCharacter: 'blob-blue',
   currentEvent: '333',
+  currentSessionId: defaultSessionId('333'),
 };
 
 function safeParse<T>(raw: string | null, fallback: T): T {
@@ -26,9 +28,11 @@ function safeParse<T>(raw: string | null, fallback: T): T {
 export function loadSolves(): Solve[] {
   const raw = localStorage.getItem(SOLVES_KEY);
   const solves = safeParse<Solve[]>(raw, []);
-  // older records saved before events were introduced default to 3x3x3
   for (const s of solves) {
+    // older records saved before events were introduced default to 3x3x3
     if (!s.event) s.event = '333';
+    // older records saved before sessions were introduced land in that event's default session
+    if (!s.sessionId) s.sessionId = defaultSessionId(s.event);
   }
   return solves.sort((a, b) => b.date - a.date);
 }

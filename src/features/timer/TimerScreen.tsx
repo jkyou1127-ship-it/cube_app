@@ -279,15 +279,8 @@ export function TimerScreen({
             latestRef.current.startTimer(computeInspectionPenalty(latestRef.current.inspectMs));
             return;
           }
-          // hands just lifted from the initial arm (phase 'armed', or idle if a HANDS_ON
-          // was missed) - this used to always jump straight into the solve, skipping
-          // inspection entirely even when it's enabled. Mirror the on-screen touch flow:
-          // go to inspection first, only start solving directly when inspection is off.
-          if (latestRef.current.inspectionActive) {
-            latestRef.current.startInspection();
-          } else {
-            latestRef.current.startTimer(null);
-          }
+          // armed with inspection off (or any unexpected state) - just start solving
+          latestRef.current.startTimer(null);
         },
         onStopped: (ms) => {
           // guard against double-finishing: onHandsOn's stopTimer() above may have
@@ -297,6 +290,10 @@ export function TimerScreen({
           latestRef.current.finish(ms, pendingPenaltyRef.current);
         },
         onIdle: () => {
+          // the round center logo button resets the display to 0.00 - this fires as an
+          // IDLE broadcast. First press after a solve just acknowledges the pending
+          // result; press it again (now that resultPending is already cleared) to
+          // actually kick off inspection.
           const p = latestRef.current.phase;
           if (p !== 'idle') return;
           if (latestRef.current.resultPending) {
