@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cube-app-windows
+          name: Release BETA Build 1.0
           path: |
             release/*.exe
           if-no-files-found: error
