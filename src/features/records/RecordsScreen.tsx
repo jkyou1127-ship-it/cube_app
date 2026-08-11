@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import type { Penalty, Settings, Solve } from '../../types';
 import { average, bestOf, computeStreak, effectiveMs, sessionMean, todayCount } from '../../lib/stats';
-import { formatTime } from '../../lib/time';
+import { formatSolveResult, formatTime } from '../../lib/time';
 import { isNotificationSupported, requestNotificationPermission } from '../../lib/notifications';
 import { MASCOT_CHARACTERS } from '../../lib/mascotCharacters';
 import { PixelMascot } from '../../components/PixelMascot';
@@ -25,6 +26,7 @@ function fmt(v: number | 'DNF' | null): string {
 export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePenalty, onDeleteSolve, onClearAll }: Props) {
   const eventSolves = solves.filter((s) => s.event === settings.currentEvent);
   const eventName = getEvent(settings.currentEvent).name;
+  const [copied, setCopied] = useState(false);
   const best = bestOf(eventSolves);
   const ao5 = average(eventSolves, 5);
   const ao12 = average(eventSolves, 12);
@@ -47,6 +49,24 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
       onUpdateSettings({ reminderEnabled: true });
     } else {
       window.alert('알림 권한이 필요해요. 브라우저 설정에서 허용해주세요.');
+    }
+  }
+
+  async function handleCopy() {
+    const lines = [
+      'cubeapp(by cupompu)',
+      '기록',
+      ...[...eventSolves]
+        .reverse()
+        .map((s, i) => `${i + 1}. ${formatSolveResult(s.ms, s.penalty)} ${s.scramble}`),
+    ];
+    const text = lines.join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.alert('복사에 실패했어요. 브라우저 설정을 확인해주세요.');
     }
   }
 
@@ -181,7 +201,14 @@ export function RecordsScreen({ solves, settings, onUpdateSettings, onUpdatePena
         )}
       </div>
 
-      <div className="section-title">{eventName} 솔브 기록</div>
+      <div className="section-title section-title--row">
+        <span>{eventName} 솔브 기록</span>
+        {eventSolves.length > 0 && (
+          <button className="copy-btn" onClick={handleCopy}>
+            {copied ? '복사됨!' : '📋 복사'}
+          </button>
+        )}
+      </div>
       {eventSolves.length === 0 ? (
         <div className="empty-state">
           <div style={{ fontSize: 32, marginBottom: 8 }}>🧊</div>
