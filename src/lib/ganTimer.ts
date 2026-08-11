@@ -51,53 +51,6 @@ export interface GanTimerCallbacks {
   /** timer moved to FINISHED right after stopping - used as a stop fallback when no
    * (valid) STOPPED packet was seen, since the app's own clock covers the missing time */
   onFinished?: () => void;
-  /** raw packet trace, for on-screen diagnostics when hardware behavior doesn't match expectations */
-  onDebugLog?: (line: string) => void;
-}
-
-function crc16ccit(buff: ArrayBuffer): number {
-  const dataView = new DataView(buff);
-  let crc = 0xffff;
-  for (let i = 0; i < dataView.byteLength; ++i) {
-    crc ^= dataView.getUint8(i) << 8;
-    for (let j = 0; j < 8; ++j) {
-      crc = (crc & 0x8000) > 0 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
-    }
-  }
-  return crc & 0xffff;
-}
-
-function validateEventData(data: DataView): boolean {
-  try {
-    if (data.byteLength === 0 || data.getUint8(0) !== 0xfe) return false;
-    const eventCRC = data.getUint16(data.byteLength - 2, true);
-    // data.buffer is the underlying ArrayBuffer, which may be larger than this
-    // DataView and start at a non-zero offset - slicing it directly (ignoring
-    // byteOffset) would checksum the wrong bytes whenever that happens.
-    const start = data.byteOffset + 2;
-    const end = data.byteOffset + data.byteLength - 2;
-    const calculatedCRC = crc16ccit(data.buffer.slice(start, end) as ArrayBuffer);
-    return eventCRC === calculatedCRC;
-  } catch {
-    return false;
-  }
-}
-
-const STATE_NAMES: Record<number, string> = {
-  0: 'DISCONNECT',
-  1: 'GET_SET',
-  2: 'HANDS_OFF',
-  3: 'RUNNING',
-  4: 'STOPPED',
-  5: 'IDLE',
-  6: 'HANDS_ON',
-  7: 'FINISHED',
-};
-
-function hexDump(data: DataView): string {
-  const bytes: string[] = [];
-  for (let i = 0; i < data.byteLength; i++) bytes.push(data.getUint8(i).toString(16).padStart(2, '0'));
-  return bytes.join(' ');
 }
 
 function recordedMsFromRaw(data: DataView, offset: number): number {
@@ -157,21 +110,13 @@ export class GanTimerLink {
       const chr = e.target as BluetoothRemoteGATTCharacteristic;
       const data = chr.value;
       if (!data) return;
-      const valid = validateEventData(data);
       const hasState = data.byteLength > 3 && data.getUint8(0) === 0xfe;
-      const state = hasState ? (data.getUint8(3) as GanTimerState) : undefined;
-      const line =
-        `${new Date().toLocaleTimeString('ko-KR', { hour12: false })} raw=${hexDump(data)} valid=${valid}` +
-        (state !== undefined ? ` state=${state}(${STATE_NAMES[state] ?? '?'})` : '');
-      // eslint-disable-next-line no-console
-      console.log('[GAN]', line);
-      callbacks.onDebugLog?.(line);
-      if (state === undefined) return;
-      // BLE's own link layer already guarantees byte-perfect delivery, so a CRC
-      // mismatch here almost always means this firmware frames this particular
-      // packet slightly differently than assumed (extra/missing bytes near the
-      // tail), not that the data is corrupt - the state byte near the front is
-      // still trustworthy, so states are dispatched even when CRC didn't check out.
+      if (!hasState) return;
+      const state = data.getUint8(3) as GanTimerState;
+      // BLE's own link layer already guarantees byte-perfect delivery, and the
+      // state byte near the front of the packet is reliable across firmware
+      // variants, so states are dispatched unconditionally without any extra
+      // checksum validation.
       switch (state) {
         case GanTimerState.HANDS_ON:
           callbacks.onHandsOn?.();

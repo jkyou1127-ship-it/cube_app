@@ -23,7 +23,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Release BETA Build 1.0
+          name: Release Build 1.0
           path: |
             release/*.exe
           if-no-files-found: error

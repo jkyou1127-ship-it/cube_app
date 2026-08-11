@@ -14,7 +14,12 @@ export type CharacterId =
   | 'cube-purple'
   | 'cube-red'
   | 'cube-orange'
-  | 'cube-sky';
+  | 'cube-sky'
+  | 'bunny-pink'
+  | 'bunny-mint'
+  | 'bunny-lime'
+  | 'bunny-sky'
+  | 'bunny-yellow';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -83,6 +88,23 @@ const CUBE_SPRITE = [
   '...KK..KK...',
 ];
 
+// blob body with tall, close-set bunny ears
+const BUNNY_SPRITE = [
+  '...PP..PP...',
+  '...BB..BB...',
+  '..BBBBBBBB..',
+  'BBBBBBBBBBBB',
+  'BBWKBBBBKWBB',
+  'BBPBBBBBBPBB',
+  'BBBKBBBBKBBB',
+  'BBBBKKKKBBBB',
+  'BBBBBBBBBBBB',
+  '.BBBBBBBBBB.',
+  '..DDDDDDDD..',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -119,6 +141,11 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'cube-red', name: '레드 큐브', sprite: CUBE_SPRITE, colors: PALETTES.red },
   { id: 'cube-orange', name: '오렌지 큐브', sprite: CUBE_SPRITE, colors: PALETTES.orange },
   { id: 'cube-sky', name: '하늘 큐브', sprite: CUBE_SPRITE, colors: PALETTES.sky },
+  { id: 'bunny-pink', name: '핑크 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.pink },
+  { id: 'bunny-mint', name: '민트 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.mint },
+  { id: 'bunny-lime', name: '연두 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.lime },
+  { id: 'bunny-sky', name: '하늘 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.sky },
+  { id: 'bunny-yellow', name: '노랑 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.yellow },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {

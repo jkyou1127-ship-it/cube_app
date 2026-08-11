@@ -13,7 +13,12 @@ export type ThemeId =
   | 'gray'
   | 'wine'
   | 'teal'
-  | 'charcoal';
+  | 'charcoal'
+  | 'coral'
+  | 'sky'
+  | 'olive'
+  | 'plum'
+  | 'slate';
 
 export interface ThemeDef {
   id: ThemeId;
@@ -41,6 +46,11 @@ export const THEMES: ThemeDef[] = [
   { id: 'wine', name: '와인', swatch: '#d94858', bg: '#150708', dark: true },
   { id: 'teal', name: '터콰이즈', swatch: '#0d9488', bg: '#eafbfa', dark: false },
   { id: 'charcoal', name: '차콜', swatch: '#b0b3ba', bg: '#1a1b1e', dark: true },
+  { id: 'coral', name: '코랄', swatch: '#ff6b5b', bg: '#fff3f1', dark: false },
+  { id: 'sky', name: '스카이', swatch: '#2f9bf0', bg: '#eaf6ff', dark: false },
+  { id: 'olive', name: '올리브', swatch: '#7c8c1e', bg: '#f8faec', dark: false },
+  { id: 'plum', name: '플럼', swatch: '#c76dd6', bg: '#180a1c', dark: true },
+  { id: 'slate', name: '슬레이트', swatch: '#64748b', bg: '#0f172a', dark: true },
 ];
 
 export function getTheme(id: ThemeId): ThemeDef {

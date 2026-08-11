@@ -223,7 +223,7 @@ export default function App() {
       {showChrome && (
         <header className="app-header">
           <div className="app-header__title">
-            🧊<span className="app-header__beta">Release BETA Build 1.0</span>
+            🧊<span className="app-header__beta">Release Build 1.0</span>
           </div>
           <EventSelect value={settings.currentEvent} onChange={changeEvent} />
           <div className="app-header__actions">
