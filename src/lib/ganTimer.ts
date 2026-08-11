@@ -66,11 +66,33 @@ function validateEventData(data: DataView): boolean {
   try {
     if (data.byteLength === 0 || data.getUint8(0) !== 0xfe) return false;
     const eventCRC = data.getUint16(data.byteLength - 2, true);
-    const calculatedCRC = crc16ccit(data.buffer.slice(2, data.byteLength - 2) as ArrayBuffer);
+    // data.buffer is the underlying ArrayBuffer, which may be larger than this
+    // DataView and start at a non-zero offset - slicing it directly (ignoring
+    // byteOffset) would checksum the wrong bytes whenever that happens.
+    const start = data.byteOffset + 2;
+    const end = data.byteOffset + data.byteLength - 2;
+    const calculatedCRC = crc16ccit(data.buffer.slice(start, end) as ArrayBuffer);
     return eventCRC === calculatedCRC;
   } catch {
     return false;
   }
+}
+
+const STATE_NAMES: Record<number, string> = {
+  0: 'DISCONNECT',
+  1: 'GET_SET',
+  2: 'HANDS_OFF',
+  3: 'RUNNING',
+  4: 'STOPPED',
+  5: 'IDLE',
+  6: 'HANDS_ON',
+  7: 'FINISHED',
+};
+
+function hexDump(data: DataView): string {
+  const bytes: string[] = [];
+  for (let i = 0; i < data.byteLength; i++) bytes.push(data.getUint8(i).toString(16).padStart(2, '0'));
+  return bytes.join(' ');
 }
 
 function recordedMsFromRaw(data: DataView, offset: number): number {
@@ -129,7 +151,14 @@ export class GanTimerLink {
     this.onValueChanged = (e: Event) => {
       const chr = e.target as BluetoothRemoteGATTCharacteristic;
       const data = chr.value;
-      if (!data || !validateEventData(data)) return;
+      if (!data) return;
+      const valid = validateEventData(data);
+      // eslint-disable-next-line no-console
+      console.log(
+        `[GAN] raw=${hexDump(data)} valid=${valid}` +
+          (valid ? ` state=${data.getUint8(3)}(${STATE_NAMES[data.getUint8(3)] ?? '?'})` : '')
+      );
+      if (!valid) return;
       const state = data.getUint8(3) as GanTimerState;
       switch (state) {
         case GanTimerState.HANDS_ON:
