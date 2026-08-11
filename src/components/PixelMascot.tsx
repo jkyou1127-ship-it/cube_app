@@ -25,15 +25,17 @@ export function PixelMascot({
 
   useEffect(() => () => window.clearTimeout(timeoutRef.current), []);
 
+  const character = getCharacter(characterId);
+
   function handleTap(e: React.SyntheticEvent) {
     e.stopPropagation();
-    const line = LINES[Math.floor(Math.random() * LINES.length)];
+    const pool = character.quotes ?? LINES;
+    const line = pool[Math.floor(Math.random() * pool.length)];
     setBubble(line);
     window.clearTimeout(timeoutRef.current);
     timeoutRef.current = window.setTimeout(() => setBubble(null), 2400);
   }
 
-  const character = getCharacter(characterId);
   const w = character.sprite[0].length * size;
   const h = character.sprite.length * size;
 

@@ -181,7 +181,7 @@ export default function App() {
   }
 
   function changeEvent(id: Settings['currentEvent']) {
-    trackEventChange(id);
+    trackEventChange(id, () => setUnlockedSecrets(getUnlockedIds()));
     const resolved = resolveSessionForEvent(sessions, id);
     if (resolved.sessions !== sessions) setSessions(resolved.sessions);
     updateSettings({ currentEvent: id, currentSessionId: resolved.sessionId });

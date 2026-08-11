@@ -25,7 +25,8 @@ export type CharacterId =
   | 'bunny-orange'
   | 'rip-sq1'
   | 'gold-cube'
-  | 'lazy-cat';
+  | 'lazy-cat'
+  | 'rainbow-cube';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -145,6 +146,23 @@ const LAZY_CAT_SPRITE = [
   '...KK..KK...',
 ];
 
+// flat cube striped like a rainbow - for the completionist who's tried every event
+const RAINBOW_CUBE_SPRITE = [
+  'RRRRRRRRRRRR',
+  'RRRRRRRRRRRR',
+  'OOOOOOOOOOOO',
+  'OOOOOOOOOOOO',
+  'YYWKYYYYKWYY',
+  'YYPYYYYYYPYY',
+  'YYYKYYYYKYYY',
+  'YYYYKKKKYYYY',
+  'GGGGGGGGGGGG',
+  'GGGGGGGGGGGG',
+  'VVVVVVVVVVVV',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -159,6 +177,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   ghost: { B: '#f1edff', D: '#d8cdfa', K: '#4a4460', W: '#ffffff', P: '#ffd1e8' },
   gold: { B: '#ffd54a', D: '#e0a800', K: '#4a3a08', W: '#ffffff', P: '#fff3c2' },
   sleepy: { B: '#c9c3e0', D: '#a89fc7', K: '#3a3550', W: '#ffffff', P: '#ffd6ea' },
+  rainbow: { R: '#ff5c5c', O: '#ff9f43', Y: '#ffd93d', G: '#4ade80', V: '#a78bfa', D: '#8b7fc7', K: '#2a2a2a', W: '#ffffff', P: '#fff3b0' },
 };
 
 export interface MascotCharacter {
@@ -168,6 +187,8 @@ export interface MascotCharacter {
   colors: Record<string, string>;
   /** hidden easter-egg character - excluded from the picker unless unlocked */
   secret?: boolean;
+  /** character-exclusive speech-bubble lines - replaces the shared line pool when tapped */
+  quotes?: string[];
 }
 
 export const MASCOT_CHARACTERS: MascotCharacter[] = [
@@ -195,9 +216,50 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'bunny-purple', name: '라벤더 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.purple },
   { id: 'bunny-red', name: '레드 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.red },
   { id: 'bunny-orange', name: '오렌지 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.orange },
-  { id: 'rip-sq1', name: '스퀘어-1 유령', sprite: GHOST_SPRITE, colors: PALETTES.ghost, secret: true },
-  { id: 'gold-cube', name: '황금 큐브', sprite: CUBE_SPRITE, colors: PALETTES.gold, secret: true },
-  { id: 'lazy-cat', name: '낮잠 냥이', sprite: LAZY_CAT_SPRITE, colors: PALETTES.sleepy, secret: true },
+  {
+    id: 'rip-sq1',
+    name: '스퀘어-1 유령',
+    sprite: GHOST_SPRITE,
+    colors: PALETTES.ghost,
+    secret: true,
+    quotes: [
+      '나는... 원래 스퀘어-1이었어...',
+      '(3,0) / (0,-3)... 아직도 그 스크램블이 잊혀지지 않아',
+      '지워졌지만 잊혀지지는 않을게',
+      '너 때문에 유령이 됐잖아...',
+      '성불하고 싶다...',
+    ],
+  },
+  {
+    id: 'gold-cube',
+    name: '황금 큐브',
+    sprite: CUBE_SPRITE,
+    colors: PALETTES.gold,
+    secret: true,
+    quotes: [
+      '반짝반짝 빛나지? 부럽지?',
+      '10번이나 눌러줘서 고마워!',
+      '나는 특별해, 아무나 못 봐',
+      '황금빛 정기를 받아라',
+      '형광펜 아니고 순금이야',
+    ],
+  },
+  {
+    id: 'lazy-cat',
+    name: '낮잠 냥이',
+    sprite: LAZY_CAT_SPRITE,
+    colors: PALETTES.sleepy,
+    secret: true,
+    quotes: ['졸려... 5분만 더 잘게...', '목표? 그냥 자자옹', '타이머 누르기 귀찮다옹', 'Zzz... 하암', '오늘은 그냥 쉬는 날이다옹'],
+  },
+  {
+    id: 'rainbow-cube',
+    name: '레인보우 큐브',
+    sprite: RAINBOW_CUBE_SPRITE,
+    colors: PALETTES.rainbow,
+    secret: true,
+    quotes: ['모든 종목을 다 해봤어!', '나는 올라운더 큐브다', '무지개처럼 다채롭지?', '12종목 정주행 완료!', '다음엔 뭘 해볼까?'],
+  },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {

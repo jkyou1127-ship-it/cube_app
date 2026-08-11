@@ -1,4 +1,4 @@
-export type SecretId = 'rip-sq1' | 'gold-cube' | 'lazy-cat';
+export type SecretId = 'rip-sq1' | 'gold-cube' | 'lazy-cat' | 'rainbow-cube';
 
 const STORAGE_KEY = 'cube_app.easterEgg.unlocked.v1';
 
@@ -57,9 +57,23 @@ export function trackThemeChange(themeId: string, onUnlock: () => void): void {
   }
 }
 
-export function trackEventChange(eventId: string): void {
+// Egg 4 - "레인보우 큐브": visit every event once, in the exact order they're
+// listed in the event picker (333 -> 222 -> ... -> clock).
+const EVENT_ORDER = ['333', '222', '444', '555', '666', '777', '333oh', '333bf', 'pyram', 'skewb', 'minx', 'clock'];
+let eventOrderIndex = 0;
+
+export function trackEventChange(eventId: string, onUnlock: () => void): void {
   if (!isUnlocked('rip-sq1') && egg1Stage === 'need-clock' && eventId === 'clock') {
     egg1Stage = 'need-light';
+  }
+
+  if (!isUnlocked('rainbow-cube')) {
+    if (eventId === EVENT_ORDER[eventOrderIndex]) {
+      eventOrderIndex += 1;
+      if (eventOrderIndex >= EVENT_ORDER.length) unlock('rainbow-cube', onUnlock);
+    } else {
+      eventOrderIndex = eventId === EVENT_ORDER[0] ? 1 : 0;
+    }
   }
 }
 
