@@ -49,7 +49,7 @@ export const EVENTS: EventDef[] = [
   { id: 'pyram', name: '피라밍크스', usesInspection: true, wellEstablishedNotation: true, generateScramble: generatePyraminxScramble },
   { id: 'skewb', name: '스큐브', usesInspection: true, wellEstablishedNotation: true, generateScramble: generateSkewbScramble },
   { id: 'minx', name: '메가밍크스', usesInspection: true, wellEstablishedNotation: false, generateScramble: generateMegaminxScramble },
-  { id: 'sq1', name: '스퀘어-1', usesInspection: true, wellEstablishedNotation: false, generateScramble: generateSquareOneScramble },
+  { id: 'sq1', name: '스퀘어-1', usesInspection: true, wellEstablishedNotation: true, generateScramble: generateSquareOneScramble },
   { id: 'clock', name: 'Clock', usesInspection: true, wellEstablishedNotation: false, generateScramble: generateClockScramble },
 ];
 
