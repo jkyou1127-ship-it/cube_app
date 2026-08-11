@@ -18,7 +18,12 @@ export type ThemeId =
   | 'sky'
   | 'olive'
   | 'plum'
-  | 'slate';
+  | 'slate'
+  | 'rip-sq1'
+  | 'gold-cube'
+  | 'lazy-cat'
+  | 'rainbow-cube'
+  | 'lightning-cube';
 
 export interface ThemeDef {
   id: ThemeId;
@@ -28,6 +33,8 @@ export interface ThemeDef {
   /** actual page background color, used for the browser theme-color meta tag */
   bg: string;
   dark: boolean;
+  /** hidden easter-egg theme - shares the id of the mascot that unlocks it */
+  secret?: boolean;
 }
 
 export const THEMES: ThemeDef[] = [
@@ -51,8 +58,17 @@ export const THEMES: ThemeDef[] = [
   { id: 'olive', name: '올리브', swatch: '#7c8c1e', bg: '#f8faec', dark: false },
   { id: 'plum', name: '플럼', swatch: '#c76dd6', bg: '#180a1c', dark: true },
   { id: 'slate', name: '슬레이트', swatch: '#64748b', bg: '#0f172a', dark: true },
+  { id: 'rip-sq1', name: '유령', swatch: '#a89fc7', bg: '#f8f6ff', dark: false, secret: true },
+  { id: 'gold-cube', name: '황금', swatch: '#c9960c', bg: '#fffbea', dark: false, secret: true },
+  { id: 'lazy-cat', name: '낮잠', swatch: '#6b5f99', bg: '#15121f', dark: true, secret: true },
+  { id: 'rainbow-cube', name: '레인보우', swatch: '#ec4899', bg: '#fff5fb', dark: false, secret: true },
+  { id: 'lightning-cube', name: '번개', swatch: '#22d3ee', bg: '#050b12', dark: true, secret: true },
 ];
 
 export function getTheme(id: ThemeId): ThemeDef {
   return THEMES.find((t) => t.id === id) ?? THEMES[0];
+}
+
+export function visibleThemes(unlockedSecretIds: Set<string>): ThemeDef[] {
+  return THEMES.filter((t) => !t.secret || unlockedSecretIds.has(t.id));
 }

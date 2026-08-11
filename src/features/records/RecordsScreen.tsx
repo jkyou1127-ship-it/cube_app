@@ -14,6 +14,7 @@ interface Props {
   settings: Settings;
   unlockedSecrets: Set<string>;
   onDailyGoalMinusClick: (wasAtFloor: boolean) => void;
+  onInspectionToggle: () => void;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onUpdatePenalty: (id: string, penalty: Penalty) => void;
   onDeleteSolve: (id: string) => void;
@@ -42,6 +43,7 @@ export function RecordsScreen({
   settings,
   unlockedSecrets,
   onDailyGoalMinusClick,
+  onInspectionToggle,
   onUpdateSettings,
   onUpdatePenalty,
   onDeleteSolve,
@@ -245,7 +247,10 @@ export function RecordsScreen({
             <input
               type="checkbox"
               checked={settings.inspectionEnabled}
-              onChange={(e) => onUpdateSettings({ inspectionEnabled: e.target.checked })}
+              onChange={(e) => {
+                onInspectionToggle();
+                onUpdateSettings({ inspectionEnabled: e.target.checked });
+              }}
             />
             <span className="switch-track" />
           </label>

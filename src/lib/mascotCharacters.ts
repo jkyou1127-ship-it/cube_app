@@ -26,7 +26,8 @@ export type CharacterId =
   | 'rip-sq1'
   | 'gold-cube'
   | 'lazy-cat'
-  | 'rainbow-cube';
+  | 'rainbow-cube'
+  | 'lightning-cube';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -163,6 +164,23 @@ const RAINBOW_CUBE_SPRITE = [
   '...KK..KK...',
 ];
 
+// flat cube with a small lightning-bolt spark on its forehead
+const LIGHTNING_CUBE_SPRITE = [
+  'BBBBBBBBBBBB',
+  'BBBBBZBBBBBB',
+  'BBBBZZBBBBBB',
+  'BBBZZBBBBBBB',
+  'BBWKBBBBKWBB',
+  'BBPBBBBBBPBB',
+  'BBBKBBBBKBBB',
+  'BBBBKKKKBBBB',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'DDDDDDDDDDDD',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -178,6 +196,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   gold: { B: '#ffd54a', D: '#e0a800', K: '#4a3a08', W: '#ffffff', P: '#fff3c2' },
   sleepy: { B: '#c9c3e0', D: '#a89fc7', K: '#3a3550', W: '#ffffff', P: '#ffd6ea' },
   rainbow: { R: '#ff5c5c', O: '#ff9f43', Y: '#ffd93d', G: '#4ade80', V: '#a78bfa', D: '#8b7fc7', K: '#2a2a2a', W: '#ffffff', P: '#fff3b0' },
+  volt: { B: '#22d3ee', D: '#0891b2', K: '#082f35', W: '#ffffff', P: '#d6fbff', Z: '#fde047' },
 };
 
 export interface MascotCharacter {
@@ -222,13 +241,7 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     sprite: GHOST_SPRITE,
     colors: PALETTES.ghost,
     secret: true,
-    quotes: [
-      '나는... 원래 스퀘어-1이었어...',
-      '(3,0) / (0,-3)... 아직도 그 스크램블이 잊혀지지 않아',
-      '지워졌지만 잊혀지지는 않을게',
-      '너 때문에 유령이 됐잖아...',
-      '성불하고 싶다...',
-    ],
+    quotes: ['나는... 원래 스퀘어-1이었어...', '(3,0) / (0,-3)... 아직도 그 스크램블이 잊혀지지 않아', '지워졌지만 잊혀지지는 않을게'],
   },
   {
     id: 'gold-cube',
@@ -259,6 +272,14 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     colors: PALETTES.rainbow,
     secret: true,
     quotes: ['모든 종목을 다 해봤어!', '나는 올라운더 큐브다', '무지개처럼 다채롭지?', '12종목 정주행 완료!', '다음엔 뭘 해볼까?'],
+  },
+  {
+    id: 'lightning-cube',
+    name: '번개 큐브',
+    sprite: LIGHTNING_CUBE_SPRITE,
+    colors: PALETTES.volt,
+    secret: true,
+    quotes: ['번쩍! 빠르게 가자!', '검사 시간 따위 필요없어!', '속도가 생명이다', '찌릿찌릿하지?', '느린 건 못 참아'],
   },
 ];
 

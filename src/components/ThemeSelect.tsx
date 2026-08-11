@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { THEMES, getTheme, type ThemeId } from '../lib/themes';
+import { getTheme, visibleThemes, type ThemeId } from '../lib/themes';
 
-export function ThemeSelect({ value, onChange }: { value: ThemeId; onChange: (id: ThemeId) => void }) {
+export function ThemeSelect({
+  value,
+  onChange,
+  unlockedSecrets,
+}: {
+  value: ThemeId;
+  onChange: (id: ThemeId) => void;
+  unlockedSecrets: Set<string>;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const current = getTheme(value);
+  const themes = visibleThemes(unlockedSecrets);
 
   useEffect(() => {
     if (!open) return;
@@ -36,7 +45,7 @@ export function ThemeSelect({ value, onChange }: { value: ThemeId; onChange: (id
       </button>
       {open && (
         <div className="theme-picker__menu" role="listbox">
-          {THEMES.map((t) => (
+          {themes.map((t) => (
             <button
               key={t.id}
               type="button"

@@ -19,7 +19,14 @@ import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
 import { getTheme } from './lib/themes';
-import { getUnlockedIds, trackDailyGoalMinusClick, trackEventChange, trackLogoClick, trackThemeChange } from './lib/easterEgg';
+import {
+  getUnlockedIds,
+  trackDailyGoalMinusClick,
+  trackEventChange,
+  trackInspectionToggle,
+  trackLogoClick,
+  trackThemeChange,
+} from './lib/easterEgg';
 
 function mergeSolves(local: Solve[], remote: Solve[]): Solve[] {
   const byId = new Map(local.map((s) => [s.id, s]));
@@ -107,6 +114,10 @@ export default function App() {
       setShowComeback(true);
     }
     updateSettings({ lastOpenedAt: now });
+    // the app already starts on the saved currentEvent without the user
+    // explicitly "selecting" it, so seed the rainbow-cube visited-events
+    // tracker with it - otherwise the starting event could never count
+    trackEventChange(settings.currentEvent, () => setUnlockedSecrets(getUnlockedIds()));
     // run once on mount only
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -200,6 +211,10 @@ export default function App() {
     trackDailyGoalMinusClick(wasAtFloor, () => setUnlockedSecrets(getUnlockedIds()));
   }
 
+  function toggleInspection() {
+    trackInspectionToggle(() => setUnlockedSecrets(getUnlockedIds()));
+  }
+
   function createSession(name: string) {
     const session: Session = { id: makeSessionId(), event: settings.currentEvent, name, createdAt: Date.now() };
     setSessions([...sessions, session]);
@@ -250,7 +265,7 @@ export default function App() {
                 onRequestDelete={() => setDeleteModalOpen(true)}
               />
             )}
-            <ThemeSelect value={settings.theme} onChange={changeTheme} />
+            <ThemeSelect value={settings.theme} onChange={changeTheme} unlockedSecrets={unlockedSecrets} />
           </div>
         </header>
       )}
@@ -300,6 +315,7 @@ export default function App() {
             settings={settings}
             unlockedSecrets={unlockedSecrets}
             onDailyGoalMinusClick={clickDailyGoalMinus}
+            onInspectionToggle={toggleInspection}
             onUpdateSettings={updateSettings}
             onUpdatePenalty={updateSolvePenalty}
             onDeleteSolve={deleteSolve}
