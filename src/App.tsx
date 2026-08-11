@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import type { Penalty, Settings, Solve, TabKey } from './types';
 import { loadSettings, loadSolves, makeSolveId, saveSettings, saveSolves } from './lib/storage';
 import { bestOf, effectiveMs } from './lib/stats';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
+import { firebaseConfigured } from './lib/firebase';
+import { onAuthChange, type User } from './lib/auth';
+import { deleteAllCloudSolves, deleteCloudSolve, fetchCloudSolves, subscribeCloudSolves, uploadSolves } from './lib/cloudSync';
 import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
 import { EventSelect } from './components/EventSelect';
+import { AccountButton } from './components/AccountButton';
+import { AuthModal } from './components/AuthModal';
 import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
@@ -28,6 +33,12 @@ function MoonIcon() {
   );
 }
 
+function mergeSolves(local: Solve[], remote: Solve[]): Solve[] {
+  const byId = new Map(local.map((s) => [s.id, s]));
+  for (const s of remote) byId.set(s.id, s);
+  return Array.from(byId.values()).sort((a, b) => b.date - a.date);
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('timer');
   const [solves, setSolves] = useState<Solve[]>(() => loadSolves());
@@ -36,6 +47,52 @@ export default function App() {
   const [confettiKey, setConfettiKey] = useState(0);
   const [showComeback, setShowComeback] = useState(false);
   const [lastSolveId, setLastSolveId] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const solvesRef = useRef(solves);
+  solvesRef.current = solves;
+
+  useEffect(() => {
+    if (!firebaseConfigured) return;
+    return onAuthChange(setUser);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    let unsubscribe: (() => void) | undefined;
+
+    (async () => {
+      try {
+        const cloudSolves = await fetchCloudSolves(user.uid);
+        if (cancelled) return;
+        const cloudIds = new Set(cloudSolves.map((s) => s.id));
+        const localOnly = solvesRef.current.filter((s) => !cloudIds.has(s.id));
+        if (localOnly.length > 0) await uploadSolves(user.uid, localOnly);
+        if (cancelled) return;
+        const merged = mergeSolves(solvesRef.current, cloudSolves);
+        setSolves(merged);
+        saveSolves(merged);
+      } catch {
+        // offline or permission issue - keep using local data
+      }
+
+      if (cancelled) return;
+      unsubscribe = subscribeCloudSolves(user.uid, (remoteSolves) => {
+        setSolves((prev) => {
+          const merged = mergeSolves(prev, remoteSolves);
+          saveSolves(merged);
+          return merged;
+        });
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
@@ -86,6 +143,7 @@ export default function App() {
     setSolves(next);
     saveSolves(next);
     setLastSolveId(solve.id);
+    if (user) uploadSolves(user.uid, [solve]).catch(() => {});
 
     const newMs = effectiveMs(solve);
     const prevMs = previousBest ? effectiveMs(previousBest) : null;
@@ -98,19 +156,26 @@ export default function App() {
     const next = solves.map((s) => (s.id === id ? { ...s, penalty } : s));
     setSolves(next);
     saveSolves(next);
+    if (user) {
+      const updated = next.find((s) => s.id === id);
+      if (updated) uploadSolves(user.uid, [updated]).catch(() => {});
+    }
   }
 
   function deleteSolve(id: string) {
     const next = solves.filter((s) => s.id !== id);
     setSolves(next);
     saveSolves(next);
+    if (user) deleteCloudSolve(user.uid, id).catch(() => {});
   }
 
   function clearAllSolves() {
     const eventId = settings.currentEvent;
+    const removedIds = solves.filter((s) => s.event === eventId).map((s) => s.id);
     const next = solves.filter((s) => s.event !== eventId);
     setSolves(next);
     saveSolves(next);
+    if (user) deleteAllCloudSolves(user.uid, removedIds).catch(() => {});
   }
 
   const showChrome = !running;
@@ -124,6 +189,7 @@ export default function App() {
           </div>
           <EventSelect value={settings.currentEvent} onChange={(id) => updateSettings({ currentEvent: id })} />
           <div className="app-header__actions">
+            {firebaseConfigured && <AccountButton user={user} onRequestLogin={() => setAuthModalOpen(true)} />}
             <button
               className="icon-btn"
               aria-label="테마 전환"
@@ -134,6 +200,8 @@ export default function App() {
           </div>
         </header>
       )}
+
+      {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
 
       <main className="app-main">
         {showComeback && (
