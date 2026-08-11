@@ -48,6 +48,8 @@ export interface GanTimerCallbacks {
   onStopped?: (ms: number) => void;
   /** timer was reset to 0.00 - fired when the GAN logo button is pressed */
   onIdle?: () => void;
+  /** raw packet trace, for on-screen diagnostics when hardware behavior doesn't match expectations */
+  onDebugLog?: (line: string) => void;
 }
 
 function crc16ccit(buff: ArrayBuffer): number {
@@ -153,11 +155,12 @@ export class GanTimerLink {
       const data = chr.value;
       if (!data) return;
       const valid = validateEventData(data);
+      const line =
+        `${new Date().toLocaleTimeString('ko-KR', { hour12: false })} raw=${hexDump(data)} valid=${valid}` +
+        (valid ? ` state=${data.getUint8(3)}(${STATE_NAMES[data.getUint8(3)] ?? '?'})` : '');
       // eslint-disable-next-line no-console
-      console.log(
-        `[GAN] raw=${hexDump(data)} valid=${valid}` +
-          (valid ? ` state=${data.getUint8(3)}(${STATE_NAMES[data.getUint8(3)] ?? '?'})` : '')
-      );
+      console.log('[GAN]', line);
+      callbacks.onDebugLog?.(line);
       if (!valid) return;
       const state = data.getUint8(3) as GanTimerState;
       switch (state) {

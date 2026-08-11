@@ -52,6 +52,7 @@ export function TimerScreen({
   const [btConnected, setBtConnected] = useState(false);
   const [btBusy, setBtBusy] = useState(false);
   const [btError, setBtError] = useState<string | null>(null);
+  const [btLog, setBtLog] = useState<string[]>([]);
 
   const startTimeRef = useRef(0);
   const inspectStartRef = useRef(0);
@@ -276,6 +277,9 @@ export function TimerScreen({
             latestRef.current.startInspection();
           }
         },
+        onDebugLog: (line) => {
+          setBtLog((prev) => [...prev.slice(-14), line]);
+        },
       });
       setBtConnected(true);
     } catch (err) {
@@ -356,6 +360,13 @@ export function TimerScreen({
             <p className="faint" style={{ marginTop: 8 }}>
               {btError}
             </p>
+          )}
+          {btConnected && btLog.length > 0 && (
+            <div className="bt-debug-log mono" onPointerDown={(e) => e.stopPropagation()}>
+              {btLog.map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
           )}
         </div>
       )}
