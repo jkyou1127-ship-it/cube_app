@@ -12,7 +12,7 @@ interface Props {
   solves: Solve[];
   sessions: Session[];
   settings: Settings;
-  ripSq1Unlocked: boolean;
+  unlockedSecrets: Set<string>;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onUpdatePenalty: (id: string, penalty: Penalty) => void;
   onDeleteSolve: (id: string) => void;
@@ -39,7 +39,7 @@ export function RecordsScreen({
   solves,
   sessions,
   settings,
-  ripSq1Unlocked,
+  unlockedSecrets,
   onUpdateSettings,
   onUpdatePenalty,
   onDeleteSolve,
@@ -216,7 +216,7 @@ export function RecordsScreen({
       <div className="section-title">마스코트</div>
       <div className="card">
         <div className="mascot-picker">
-          {visibleCharacters(ripSq1Unlocked).map((c) => (
+          {visibleCharacters(unlockedSecrets).map((c) => (
             <button
               key={c.id}
               className={`mascot-picker__item${settings.mascotCharacter === c.id ? ' active' : ''}`}
