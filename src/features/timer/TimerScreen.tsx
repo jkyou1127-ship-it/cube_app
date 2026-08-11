@@ -59,6 +59,10 @@ export function TimerScreen({
   const rafRef = useRef<number>(0);
   const pendingPenaltyRef = useRef<Penalty>(null);
   const ganRef = useRef<GanTimerLink | null>(null);
+  // true from the moment a solve is stopped (by either path below) until hands
+  // finally lift off the pads - guards against the same physical "hands down to
+  // stop" contact being misread as a brand new "hands down to arm" a moment later
+  const stoppedRecentlyRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -245,10 +249,25 @@ export function TimerScreen({
         onConnectionChange: (connected) => setBtConnected(connected),
         onHandsOn: () => {
           const p = latestRef.current.phase;
-          if (p === 'idle') setPhase('armed');
-          else if (p === 'inspecting') setPhase('inspecting-armed');
+          // placing hands back on the pads while running IS the stop action on real
+          // cube timers - don't wait on a separate STOPPED packet for this, since the
+          // app's own clock is enough and is more robust to hardware quirks
+          if (p === 'running') {
+            stoppedRecentlyRef.current = true;
+            latestRef.current.stopTimer();
+            return;
+          }
+          if (p === 'idle') {
+            // this HANDS_ON may just be the tail end of the same stop contact above,
+            // not a request to arm a new solve - wait for hands to actually lift first
+            if (stoppedRecentlyRef.current) return;
+            setPhase('armed');
+          } else if (p === 'inspecting') {
+            setPhase('inspecting-armed');
+          }
         },
         onHandsOff: () => {
+          stoppedRecentlyRef.current = false;
           const p = latestRef.current.phase;
           if (p === 'armed') setPhase('idle');
           else if (p === 'inspecting-armed') setPhase('inspecting');
@@ -258,11 +277,23 @@ export function TimerScreen({
           if (p === 'running') return;
           if (p === 'inspecting' || p === 'inspecting-armed') {
             latestRef.current.startTimer(computeInspectionPenalty(latestRef.current.inspectMs));
+            return;
+          }
+          // hands just lifted from the initial arm (phase 'armed', or idle if a HANDS_ON
+          // was missed) - this used to always jump straight into the solve, skipping
+          // inspection entirely even when it's enabled. Mirror the on-screen touch flow:
+          // go to inspection first, only start solving directly when inspection is off.
+          if (latestRef.current.inspectionActive) {
+            latestRef.current.startInspection();
           } else {
             latestRef.current.startTimer(null);
           }
         },
         onStopped: (ms) => {
+          // guard against double-finishing: onHandsOn's stopTimer() above may have
+          // already ended the solve by the time this (possibly late) packet arrives
+          if (latestRef.current.phase !== 'running') return;
+          stoppedRecentlyRef.current = true;
           latestRef.current.finish(ms, pendingPenaltyRef.current);
         },
         onIdle: () => {
