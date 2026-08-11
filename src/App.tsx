@@ -14,6 +14,7 @@ import { EventSelect } from './components/EventSelect';
 import { ThemeSelect } from './components/ThemeSelect';
 import { AccountButton } from './components/AccountButton';
 import { AuthModal } from './components/AuthModal';
+import { DeleteAccountModal } from './components/DeleteAccountModal';
 import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
@@ -35,6 +36,7 @@ export default function App() {
   const [lastSolveId, setLastSolveId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [sessions, setSessionsState] = useState<Session[]>(() => {
     const initial = ensureDefaultSession(loadSessions(), loadSettings().currentEvent);
     saveSessions(initial);
@@ -221,17 +223,30 @@ export default function App() {
       {showChrome && (
         <header className="app-header">
           <div className="app-header__title">
-            🧊<span className="app-header__beta">BETA 3.5</span>
+            🧊<span className="app-header__beta">Release BETA Build 1.0</span>
           </div>
           <EventSelect value={settings.currentEvent} onChange={changeEvent} />
           <div className="app-header__actions">
-            {firebaseConfigured && <AccountButton user={user} onRequestLogin={() => setAuthModalOpen(true)} />}
+            {firebaseConfigured && (
+              <AccountButton
+                user={user}
+                onRequestLogin={() => setAuthModalOpen(true)}
+                onRequestDelete={() => setDeleteModalOpen(true)}
+              />
+            )}
             <ThemeSelect value={settings.theme} onChange={(id) => updateSettings({ theme: id })} />
           </div>
         </header>
       )}
 
       {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
+      {deleteModalOpen && user && (
+        <DeleteAccountModal
+          uid={user.uid}
+          onClose={() => setDeleteModalOpen(false)}
+          onDeleted={() => setDeleteModalOpen(false)}
+        />
+      )}
 
       <main className="app-main">
         {showComeback && (

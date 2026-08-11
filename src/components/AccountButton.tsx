@@ -11,7 +11,15 @@ function UserIcon() {
   );
 }
 
-export function AccountButton({ user, onRequestLogin }: { user: User | null; onRequestLogin: () => void }) {
+export function AccountButton({
+  user,
+  onRequestLogin,
+  onRequestDelete,
+}: {
+  user: User | null;
+  onRequestLogin: () => void;
+  onRequestDelete: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +64,16 @@ export function AccountButton({ user, onRequestLogin }: { user: User | null; onR
             }}
           >
             로그아웃
+          </button>
+          <button
+            type="button"
+            className="account-picker__delete"
+            onClick={() => {
+              setOpen(false);
+              onRequestDelete();
+            }}
+          >
+            회원탈퇴
           </button>
         </div>
       )}

@@ -1,6 +1,9 @@
 import {
   createUserWithEmailAndPassword,
+  deleteUser,
+  EmailAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -24,6 +27,18 @@ export async function signIn(email: string, password: string): Promise<void> {
 
 export async function signOutUser(): Promise<void> {
   await signOut(auth);
+}
+
+/** Firebase requires a recent login before allowing account deletion - re-enter the
+ * password to prove it's really the account owner, then delete the auth account itself.
+ * Deleting the user's Firestore data is the caller's job, and must happen BEFORE this,
+ * while still authenticated (security rules require request.auth.uid == userId). */
+export async function deleteAccount(password: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('로그인 상태가 아니에요.');
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
+  await deleteUser(user);
 }
 
 export function authErrorMessage(err: unknown): string {

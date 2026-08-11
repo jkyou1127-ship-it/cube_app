@@ -212,6 +212,22 @@
   border-color: var(--border-strong);
 }
 
+.account-picker__delete {
+  border: none;
+  background: transparent;
+  color: var(--red);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 2px 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.account-picker__delete:hover {
+  text-decoration: underline;
+}
+
 .theme-picker {
   position: relative;
 }
