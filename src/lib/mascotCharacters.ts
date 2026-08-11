@@ -22,7 +22,8 @@ export type CharacterId =
   | 'bunny-yellow'
   | 'bunny-purple'
   | 'bunny-red'
-  | 'bunny-orange';
+  | 'bunny-orange'
+  | 'rip-sq1';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -108,6 +109,23 @@ const BUNNY_SPRITE = [
   '...KK..KK...',
 ];
 
+// a little tombstone, in loving memory of the Square-1 event
+const TOMBSTONE_SPRITE = [
+  '...BBBBBB...',
+  '..BBBBBBBB..',
+  '.BBBBBBBBBB.',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'BBBBBKKBBBBB',
+  'BBBBBKKBBBBB',
+  'BBKKKKKKKKBB',
+  'BBBBBKKBBBBB',
+  'BBBBBKKBBBBB',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'DDDDDDDDDDDD',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -118,6 +136,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   red: { B: '#ff6b6b', D: '#e0403f', K: '#3a1414', W: '#ffffff', P: '#ffd6d6' },
   orange: { B: '#ff9f43', D: '#e8791a', K: '#3a2308', W: '#ffffff', P: '#ffe4c2' },
   sky: { B: '#5ec8f2', D: '#2ea3d6', K: '#0f2a38', W: '#ffffff', P: '#dff5ff' },
+  stone: { B: '#b8bcc4', D: '#8b909c', K: '#4a4e58', W: '#ffffff', P: '#d8dbe0' },
 };
 
 export interface MascotCharacter {
@@ -152,6 +171,7 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'bunny-purple', name: '라벤더 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.purple },
   { id: 'bunny-red', name: '레드 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.red },
   { id: 'bunny-orange', name: '오렌지 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.orange },
+  { id: 'rip-sq1', name: 'RIP 스퀘어-1', sprite: TOMBSTONE_SPRITE, colors: PALETTES.stone },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {
