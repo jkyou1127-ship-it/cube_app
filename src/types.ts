@@ -1,5 +1,6 @@
 import type { CharacterId } from './lib/mascotCharacters';
 import type { EventId } from './lib/events';
+import type { ThemeId } from './lib/themes';
 
 export type Penalty = null | '+2' | 'DNF';
 
@@ -13,7 +14,7 @@ export interface Solve {
 }
 
 export interface Settings {
-  theme: 'light' | 'dark';
+  theme: ThemeId;
   dailyGoal: number;
   reminderEnabled: boolean;
   reminderTime: string;

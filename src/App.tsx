@@ -10,28 +10,13 @@ import { deleteAllCloudSolves, deleteCloudSolve, fetchCloudSolves, subscribeClou
 import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
 import { EventSelect } from './components/EventSelect';
+import { ThemeSelect } from './components/ThemeSelect';
 import { AccountButton } from './components/AccountButton';
 import { AuthModal } from './components/AuthModal';
 import { TimerScreen } from './features/timer/TimerScreen';
 import { RecordsScreen } from './features/records/RecordsScreen';
 import { FunScreen } from './features/fun/FunScreen';
-
-function SunIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-    </svg>
-  );
-}
-
-function MoonIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
-      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-    </svg>
-  );
-}
+import { getTheme } from './lib/themes';
 
 function mergeSolves(local: Solve[], remote: Solve[]): Solve[] {
   const byId = new Map(local.map((s) => [s.id, s]));
@@ -96,7 +81,8 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', settings.theme === 'dark' ? '#0c0d10' : '#ffffff');
+    const themeDef = getTheme(settings.theme);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeDef.bg);
   }, [settings.theme]);
 
   useEffect(() => {
@@ -185,18 +171,12 @@ export default function App() {
       {showChrome && (
         <header className="app-header">
           <div className="app-header__title">
-            🧊<span className="app-header__beta">BETA 1.0</span>
+            🧊<span className="app-header__beta">BETA 3.0</span>
           </div>
           <EventSelect value={settings.currentEvent} onChange={(id) => updateSettings({ currentEvent: id })} />
           <div className="app-header__actions">
             {firebaseConfigured && <AccountButton user={user} onRequestLogin={() => setAuthModalOpen(true)} />}
-            <button
-              className="icon-btn"
-              aria-label="테마 전환"
-              onClick={() => updateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
-            >
-              {settings.theme === 'dark' ? <SunIcon /> : <MoonIcon />}
-            </button>
+            <ThemeSelect value={settings.theme} onChange={(id) => updateSettings({ theme: id })} />
           </div>
         </header>
       )}

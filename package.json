@@ -1,7 +1,7 @@
 {
   "name": "cube_app",
   "private": true,
-  "version": "1.0.0-beta.1",
+  "version": "3.0.0-beta.1",
   "description": "큐브 연습 타이머 - 스크램블, 기록/통계, 심심풀이 미니게임",
   "author": "cube_app",
   "type": "module",
