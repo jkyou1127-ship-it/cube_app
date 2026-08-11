@@ -1,15 +1,41 @@
-import { connectGanTimer, GanTimerState, type GanTimerConnection, type GanTimerEvent } from 'gan-web-bluetooth';
-import type { Subscription } from 'rxjs';
-
 /**
- * Thin adapter around the `gan-web-bluetooth` library (MIT, by afedotov -
- * https://github.com/afedotov/gan-web-bluetooth), which documents the real
- * reverse-engineered GAN Smart Timer BLE protocol (service/characteristic
- * UUIDs, packet format, CRC16 checksum). Using the real library instead of
- * guessing at the protocol is what makes this integration actually work
- * against real hardware, as opposed to the earlier generic best-effort
- * "any notification = button press" placeholder.
+ * GAN Smart Timer BLE connector.
+ *
+ * This started out as a thin wrapper around the `gan-web-bluetooth` library, but
+ * that library hardcodes the "state" characteristic UUID (0000fff5) inside the
+ * 0000fff0 service. On at least one real GAN Timer unit that UUID doesn't exist -
+ * the device throws "No Characteristics matching UUID 0000fff2/0000fff5 found in
+ * Service" right after connecting, even though the service itself (0000fff0) is
+ * found correctly. Different firmware/hardware batches apparently expose the
+ * same service with different characteristic UUIDs.
+ *
+ * To be robust to that, this connects to the service the same way, but instead
+ * of assuming a fixed characteristic UUID, it enumerates every characteristic in
+ * the service and picks whichever one actually supports notifications - that's
+ * all this app needs (it never reads the timer's stored "last 3 times" via the
+ * separate read-only characteristic, so that one isn't required at all).
+ *
+ * The packet format itself (0xFE-prefixed frame, state byte, CRC16/CCITT-FALSE
+ * checksum) is the real reverse-engineered GAN protocol, ported from
+ * gan-web-bluetooth (MIT, by afedotov - https://github.com/afedotov/gan-web-bluetooth).
  */
+
+const GAN_TIMER_SERVICE = '0000fff0-0000-1000-8000-00805f9b34fb';
+// most GAN Timer units expose the state characteristic here - tried first as a fast path
+const PREFERRED_STATE_CHARACTERISTIC = '0000fff5-0000-1000-8000-00805f9b34fb';
+
+export const GanTimerState = {
+  DISCONNECT: 0,
+  GET_SET: 1,
+  HANDS_OFF: 2,
+  RUNNING: 3,
+  STOPPED: 4,
+  IDLE: 5,
+  HANDS_ON: 6,
+  FINISHED: 7,
+} as const;
+type GanTimerState = (typeof GanTimerState)[keyof typeof GanTimerState];
+
 export interface GanTimerCallbacks {
   onConnectionChange?: (connected: boolean) => void;
   /** both hands placed on the timer's touch plates */
@@ -24,12 +50,61 @@ export interface GanTimerCallbacks {
   onIdle?: () => void;
 }
 
+function crc16ccit(buff: ArrayBuffer): number {
+  const dataView = new DataView(buff);
+  let crc = 0xffff;
+  for (let i = 0; i < dataView.byteLength; ++i) {
+    crc ^= dataView.getUint8(i) << 8;
+    for (let j = 0; j < 8; ++j) {
+      crc = (crc & 0x8000) > 0 ? ((crc << 1) ^ 0x1021) & 0xffff : (crc << 1) & 0xffff;
+    }
+  }
+  return crc & 0xffff;
+}
+
+function validateEventData(data: DataView): boolean {
+  try {
+    if (data.byteLength === 0 || data.getUint8(0) !== 0xfe) return false;
+    const eventCRC = data.getUint16(data.byteLength - 2, true);
+    const calculatedCRC = crc16ccit(data.buffer.slice(2, data.byteLength - 2) as ArrayBuffer);
+    return eventCRC === calculatedCRC;
+  } catch {
+    return false;
+  }
+}
+
+function recordedMsFromRaw(data: DataView, offset: number): number {
+  const min = data.getUint8(offset);
+  const sec = data.getUint8(offset + 1);
+  const msec = data.getUint16(offset + 2, true);
+  return min * 60000 + sec * 1000 + msec;
+}
+
+async function findStateCharacteristic(
+  service: BluetoothRemoteGATTService
+): Promise<BluetoothRemoteGATTCharacteristic> {
+  try {
+    const preferred = await service.getCharacteristic(PREFERRED_STATE_CHARACTERISTIC);
+    if (preferred.properties.notify) return preferred;
+  } catch {
+    // not present on this device - fall through to scanning every characteristic
+  }
+  const all = await service.getCharacteristics();
+  const notifyable = all.find((c) => c.properties.notify);
+  if (!notifyable) {
+    throw new Error('이 타이머 기기에서 상태 알림을 지원하는 채널을 찾지 못했어요.');
+  }
+  return notifyable;
+}
+
 export class GanTimerLink {
-  private conn: GanTimerConnection | null = null;
-  private sub: Subscription | null = null;
+  private device: BluetoothDevice | null = null;
+  private stateChar: BluetoothRemoteGATTCharacteristic | null = null;
+  private onValueChanged: ((e: Event) => void) | null = null;
+  private onGattDisconnected: (() => void) | null = null;
 
   get connected(): boolean {
-    return this.conn !== null;
+    return this.device !== null;
   }
 
   async connect(callbacks: GanTimerCallbacks): Promise<void> {
@@ -37,12 +112,26 @@ export class GanTimerLink {
       throw new Error('이 환경은 Web Bluetooth를 지원하지 않아요.');
     }
 
-    const conn = await connectGanTimer();
-    this.conn = conn;
-    callbacks.onConnectionChange?.(true);
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: 'GAN' }, { namePrefix: 'gan' }, { namePrefix: 'Gan' }],
+      optionalServices: [GAN_TIMER_SERVICE],
+    });
+    if (!device.gatt) {
+      throw new Error('이 기기는 GATT 연결을 지원하지 않아요.');
+    }
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(GAN_TIMER_SERVICE);
+    const stateChar = await findStateCharacteristic(service);
 
-    this.sub = conn.events$.subscribe((evt: GanTimerEvent) => {
-      switch (evt.state) {
+    this.device = device;
+    this.stateChar = stateChar;
+
+    this.onValueChanged = (e: Event) => {
+      const chr = e.target as BluetoothRemoteGATTCharacteristic;
+      const data = chr.value;
+      if (!data || !validateEventData(data)) return;
+      const state = data.getUint8(3) as GanTimerState;
+      switch (state) {
         case GanTimerState.HANDS_ON:
           callbacks.onHandsOn?.();
           break;
@@ -53,28 +142,42 @@ export class GanTimerLink {
           callbacks.onRunning?.();
           break;
         case GanTimerState.STOPPED:
-          if (evt.recordedTime) {
-            callbacks.onStopped?.(Math.round(evt.recordedTime.asTimestamp));
-          }
+          callbacks.onStopped?.(Math.round(recordedMsFromRaw(data, 4)));
           break;
         case GanTimerState.IDLE:
           callbacks.onIdle?.();
           break;
-        case GanTimerState.DISCONNECT:
-          this.conn = null;
-          callbacks.onConnectionChange?.(false);
-          break;
-        // GET_SET / FINISHED don't need separate handling for our UI
         default:
           break;
       }
-    });
+    };
+    this.onGattDisconnected = () => {
+      this.device = null;
+      this.stateChar = null;
+      callbacks.onConnectionChange?.(false);
+    };
+
+    stateChar.addEventListener('characteristicvaluechanged', this.onValueChanged);
+    device.addEventListener('gattserverdisconnected', this.onGattDisconnected);
+    await stateChar.startNotifications();
+
+    callbacks.onConnectionChange?.(true);
   }
 
   disconnect(): void {
-    this.sub?.unsubscribe();
-    this.sub = null;
-    this.conn?.disconnect();
-    this.conn = null;
+    if (this.stateChar && this.onValueChanged) {
+      this.stateChar.removeEventListener('characteristicvaluechanged', this.onValueChanged);
+      this.stateChar.stopNotifications().catch(() => {});
+    }
+    if (this.device) {
+      if (this.onGattDisconnected) {
+        this.device.removeEventListener('gattserverdisconnected', this.onGattDisconnected);
+      }
+      if (this.device.gatt?.connected) this.device.gatt.disconnect();
+    }
+    this.device = null;
+    this.stateChar = null;
+    this.onValueChanged = null;
+    this.onGattDisconnected = null;
   }
 }

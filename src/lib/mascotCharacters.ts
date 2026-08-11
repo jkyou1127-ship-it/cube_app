@@ -49,9 +49,9 @@ const BOT_SPRITE = [
   '...KK..KK...',
 ];
 
-// blob body with pointy cat ears
+// blob body with pointy cat ears (pink inner-ear peek for extra cute)
 const CAT_SPRITE = [
-  '.B........B.',
+  '.PP......PP.',
   '.BB......BB.',
   '.BBBBBBBBBB.',
   'BBBBBBBBBBBB',

@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   type User,
+  type UserCredential,
 } from 'firebase/auth';
 import { auth } from './firebase';
 
@@ -13,8 +14,8 @@ export function onAuthChange(callback: (user: User | null) => void): () => void 
   return onAuthStateChanged(auth, callback);
 }
 
-export async function signUp(email: string, password: string): Promise<void> {
-  await createUserWithEmailAndPassword(auth, email, password);
+export async function signUp(email: string, password: string): Promise<UserCredential> {
+  return createUserWithEmailAndPassword(auth, email, password);
 }
 
 export async function signIn(email: string, password: string): Promise<void> {
