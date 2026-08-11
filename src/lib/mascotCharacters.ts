@@ -24,7 +24,8 @@ export type CharacterId =
   | 'bunny-red'
   | 'bunny-orange'
   | 'rip-sq1'
-  | 'gold-cube';
+  | 'gold-cube'
+  | 'lazy-cat';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -127,6 +128,23 @@ const GHOST_SPRITE = [
   'BBB...B...BB',
 ];
 
+// cat body with closed, sleepy eyes and a small resting smile
+const LAZY_CAT_SPRITE = [
+  '.PP......PP.',
+  '.BB......BB.',
+  '.BBBBBBBBBB.',
+  'BBBBBBBBBBBB',
+  'BBBKBBBBKBBB',
+  'BBPBBBBBBPBB',
+  'BBBBBBBBBBBB',
+  'BBBBBKKBBBBB',
+  'BBBBBBBBBBBB',
+  '.BBBBBBBBBB.',
+  '..DDDDDDDD..',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -140,6 +158,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   stone: { B: '#b8bcc4', D: '#8b909c', K: '#4a4e58', W: '#ffffff', P: '#d8dbe0' },
   ghost: { B: '#f1edff', D: '#d8cdfa', K: '#4a4460', W: '#ffffff', P: '#ffd1e8' },
   gold: { B: '#ffd54a', D: '#e0a800', K: '#4a3a08', W: '#ffffff', P: '#fff3c2' },
+  sleepy: { B: '#c9c3e0', D: '#a89fc7', K: '#3a3550', W: '#ffffff', P: '#ffd6ea' },
 };
 
 export interface MascotCharacter {
@@ -178,6 +197,7 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
   { id: 'bunny-orange', name: '오렌지 토끼', sprite: BUNNY_SPRITE, colors: PALETTES.orange },
   { id: 'rip-sq1', name: '스퀘어-1 유령', sprite: GHOST_SPRITE, colors: PALETTES.ghost, secret: true },
   { id: 'gold-cube', name: '황금 큐브', sprite: CUBE_SPRITE, colors: PALETTES.gold, secret: true },
+  { id: 'lazy-cat', name: '낮잠 냥이', sprite: LAZY_CAT_SPRITE, colors: PALETTES.sleepy, secret: true },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {

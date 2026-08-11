@@ -13,6 +13,7 @@ interface Props {
   sessions: Session[];
   settings: Settings;
   unlockedSecrets: Set<string>;
+  onDailyGoalMinusClick: (wasAtFloor: boolean) => void;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onUpdatePenalty: (id: string, penalty: Penalty) => void;
   onDeleteSolve: (id: string) => void;
@@ -40,6 +41,7 @@ export function RecordsScreen({
   sessions,
   settings,
   unlockedSecrets,
+  onDailyGoalMinusClick,
   onUpdateSettings,
   onUpdatePenalty,
   onDeleteSolve,
@@ -201,7 +203,10 @@ export function RecordsScreen({
           <div className="stepper">
             <button
               className="icon-btn"
-              onClick={() => onUpdateSettings({ dailyGoal: Math.max(1, settings.dailyGoal - 1) })}
+              onClick={() => {
+                onDailyGoalMinusClick(settings.dailyGoal <= 1);
+                onUpdateSettings({ dailyGoal: Math.max(1, settings.dailyGoal - 1) });
+              }}
             >
               −
             </button>

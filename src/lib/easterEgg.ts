@@ -1,4 +1,4 @@
-export type SecretId = 'rip-sq1' | 'gold-cube';
+export type SecretId = 'rip-sq1' | 'gold-cube' | 'lazy-cat';
 
 const STORAGE_KEY = 'cube_app.easterEgg.unlocked.v1';
 
@@ -70,4 +70,18 @@ export function trackLogoClick(onUnlock: () => void): void {
   if (isUnlocked('gold-cube')) return;
   logoClicks += 1;
   if (logoClicks >= 10) unlock('gold-cube', onUnlock);
+}
+
+// Egg 3 - "낮잠 냥이": the daily-goal "-" button is already floored at 1, but
+// keep stubbornly clicking it 10 more times anyway.
+let stubbornMinusStreak = 0;
+
+export function trackDailyGoalMinusClick(wasAtFloor: boolean, onUnlock: () => void): void {
+  if (isUnlocked('lazy-cat')) return;
+  if (wasAtFloor) {
+    stubbornMinusStreak += 1;
+    if (stubbornMinusStreak >= 10) unlock('lazy-cat', onUnlock);
+  } else {
+    stubbornMinusStreak = 0;
+  }
 }
