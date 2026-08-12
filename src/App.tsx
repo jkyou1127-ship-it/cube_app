@@ -26,6 +26,7 @@ import {
   trackEventChange,
   trackInspectionToggle,
   trackLogoClick,
+  trackPbTileClick,
   trackThemeChange,
 } from './lib/easterEgg';
 
@@ -216,6 +217,10 @@ export default function App() {
     trackInspectionToggle(() => setUnlockedSecrets(getUnlockedIds()));
   }
 
+  function clickPbTile() {
+    trackPbTileClick(() => setUnlockedSecrets(getUnlockedIds()));
+  }
+
   function createSession(name: string) {
     const session: Session = { id: makeSessionId(), event: settings.currentEvent, name, createdAt: Date.now() };
     setSessions([...sessions, session]);
@@ -249,6 +254,7 @@ export default function App() {
   }
 
   const showChrome = !running;
+  const isAdmin = isAdminUser(user?.uid);
 
   return (
     <>
@@ -303,6 +309,7 @@ export default function App() {
             dailyGoal={settings.dailyGoal}
             inspectionEnabled={settings.inspectionEnabled}
             characterId={settings.mascotCharacter}
+            isAdmin={isAdmin}
             lastSolveId={lastSolveId}
             onRunningChange={setRunning}
             onFinishSolve={addSolve}
@@ -315,9 +322,10 @@ export default function App() {
             sessions={sessions}
             settings={settings}
             unlockedSecrets={unlockedSecrets}
-            isAdmin={isAdminUser(user?.uid)}
+            isAdmin={isAdmin}
             onDailyGoalMinusClick={clickDailyGoalMinus}
             onInspectionToggle={toggleInspection}
+            onPbTileClick={clickPbTile}
             onUpdateSettings={updateSettings}
             onUpdatePenalty={updateSolvePenalty}
             onDeleteSolve={deleteSolve}

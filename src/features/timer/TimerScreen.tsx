@@ -19,6 +19,7 @@ interface Props {
   dailyGoal: number;
   inspectionEnabled: boolean;
   characterId: CharacterId;
+  isAdmin: boolean;
   lastSolveId: string | null;
   onRunningChange: (running: boolean) => void;
   onFinishSolve: (ms: number, scramble: string, penalty: Penalty) => void;
@@ -33,6 +34,7 @@ export function TimerScreen({
   dailyGoal,
   inspectionEnabled,
   characterId,
+  isAdmin,
   lastSolveId,
   onRunningChange,
   onFinishSolve,
@@ -378,7 +380,7 @@ export function TimerScreen({
         <div className="timer-top">
           {showBottom && (
             <div className="timer-mascot-slot">
-              <PixelMascot characterId={characterId} size={11} />
+              <PixelMascot characterId={characterId} size={11} isAdmin={isAdmin} />
             </div>
           )}
           <div className="scramble-chip">

@@ -1,4 +1,4 @@
-export type SecretId = 'rip-sq1' | 'gold-cube' | 'lazy-cat' | 'rainbow-cube' | 'lightning-cube';
+export type SecretId = 'rip-sq1' | 'gold-cube' | 'lazy-cat' | 'rainbow-cube' | 'lightning-cube' | 'shooting-star';
 
 const STORAGE_KEY = 'cube_app.easterEgg.unlocked.v1';
 
@@ -106,4 +106,13 @@ export function trackInspectionToggle(onUnlock: () => void): void {
   if (isUnlocked('lightning-cube')) return;
   inspectionToggles += 1;
   if (inspectionToggles >= 10) unlock('lightning-cube', onUnlock);
+}
+
+// Egg 6 - "별똥별 큐브": tap the PB stat tile on the records screen 10 times.
+let pbTileClicks = 0;
+
+export function trackPbTileClick(onUnlock: () => void): void {
+  if (isUnlocked('shooting-star')) return;
+  pbTileClicks += 1;
+  if (pbTileClicks >= 10) unlock('shooting-star', onUnlock);
 }

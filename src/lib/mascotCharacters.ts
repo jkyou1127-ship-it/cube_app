@@ -28,6 +28,7 @@ export type CharacterId =
   | 'lazy-cat'
   | 'rainbow-cube'
   | 'lightning-cube'
+  | 'shooting-star'
   | 'admin-crown';
 
 // 12x13 pixel-art grids. '.' = transparent.
@@ -182,6 +183,23 @@ const LIGHTNING_CUBE_SPRITE = [
   '...KK..KK...',
 ];
 
+// flat cube with a sparkling comet-trail corner - for landing 10 taps on the PB tile
+const SHOOTING_STAR_SPRITE = [
+  'S.BBBBBBBB.S',
+  '.SBBBBBBBBS.',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'BBWKBBBBKWBB',
+  'BBPBBBBBBPBB',
+  'BBBKBBBBKBBB',
+  'BBBBKKKKBBBB',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'DDDDDDDDDDDD',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 // cube body topped with a crown - for the app's admin account only
 const ADMIN_SPRITE = [
   '.C..C..C..C.',
@@ -216,6 +234,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   rainbow: { R: '#ff5c5c', O: '#ff9f43', Y: '#ffd93d', G: '#4ade80', V: '#a78bfa', D: '#8b7fc7', K: '#2a2a2a', W: '#ffffff', P: '#fff3b0' },
   volt: { B: '#22d3ee', D: '#0891b2', K: '#082f35', W: '#ffffff', P: '#d6fbff', Z: '#fde047' },
   royal: { B: '#7c3aed', D: '#5b21b6', K: '#1e1033', W: '#ffffff', P: '#f5d0fe', C: '#ffd700', J: '#ef4444' },
+  comet: { B: '#60a5fa', D: '#2563eb', K: '#0c1e3d', W: '#ffffff', P: '#bfe0ff', S: '#fef08a' },
 };
 
 export interface MascotCharacter {
@@ -308,6 +327,20 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     quotes: ['번쩍! 빠르게 가자!', '속도가 생명이다', '찌릿찌릿하지?', '느린 건 못 참아'],
   },
   {
+    id: 'shooting-star',
+    name: '별똥별 큐브',
+    sprite: SHOOTING_STAR_SPRITE,
+    colors: PALETTES.comet,
+    secret: true,
+    quotes: [
+      '나를 보면 소원을 빌어봐!',
+      'PB를 10번이나 확인했구나',
+      '빠르게 지나가는 게 내 매력이지',
+      '오늘 신기록 한번 노려볼까?',
+      '반짝반짝, 눈부시지?',
+    ],
+  },
+  {
     id: 'admin-crown',
     name: '관리자 큐브',
     sprite: ADMIN_SPRITE,
@@ -322,6 +355,17 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
       '왕관 무겁지 않아요, 걱정 마세요',
     ],
   },
+];
+
+// Bonus speech-bubble lines mixed into ANY character's quote pool for the
+// admin account only (see lib/admin.ts) - even while wearing a plain,
+// non-secret mascot like blob-blue.
+export const ADMIN_BONUS_QUOTES = [
+  '이 대사는 관리자만 볼 수 있어요',
+  '어떤 캐릭터를 입어도 저는 알아봐요, 관리자님',
+  '오늘도 몰래 지켜보고 있어요',
+  '이 캐릭터 옷, 입어보니 어때요?',
+  '숨겨진 대사 하나 더 찾으셨네요',
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {

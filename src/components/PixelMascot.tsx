@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getCharacter, type CharacterId } from '../lib/mascotCharacters';
+import { ADMIN_BONUS_QUOTES, getCharacter, type CharacterId } from '../lib/mascotCharacters';
 
 const LINES = [
   '화이팅!',
@@ -15,10 +15,13 @@ export function PixelMascot({
   characterId = 'blob-blue',
   size = 10,
   interactive = true,
+  isAdmin = false,
 }: {
   characterId?: CharacterId;
   size?: number;
   interactive?: boolean;
+  /** mixes in admin-exclusive bonus lines regardless of which mascot is equipped */
+  isAdmin?: boolean;
 }) {
   const [bubble, setBubble] = useState<string | null>(null);
   const timeoutRef = useRef<number>(0);
@@ -29,7 +32,7 @@ export function PixelMascot({
 
   function handleTap(e: React.SyntheticEvent) {
     e.stopPropagation();
-    const pool = character.quotes ?? LINES;
+    const pool = isAdmin ? [...(character.quotes ?? LINES), ...ADMIN_BONUS_QUOTES] : (character.quotes ?? LINES);
     const line = pool[Math.floor(Math.random() * pool.length)];
     setBubble(line);
     window.clearTimeout(timeoutRef.current);

@@ -24,6 +24,7 @@ export type ThemeId =
   | 'lazy-cat'
   | 'rainbow-cube'
   | 'lightning-cube'
+  | 'shooting-star'
   | 'admin-crown';
 
 export interface ThemeDef {
@@ -64,6 +65,7 @@ export const THEMES: ThemeDef[] = [
   { id: 'lazy-cat', name: '낮잠', swatch: '#6b5f99', bg: '#15121f', dark: true, secret: true },
   { id: 'rainbow-cube', name: '레인보우', swatch: '#ec4899', bg: '#fff5fb', dark: false, secret: true },
   { id: 'lightning-cube', name: '번개', swatch: '#22d3ee', bg: '#050b12', dark: true, secret: true },
+  { id: 'shooting-star', name: '별똥별', swatch: '#60a5fa', bg: '#050814', dark: true, secret: true },
   { id: 'admin-crown', name: '관리자', swatch: '#a855f7', bg: '#1a0f33', dark: true, secret: true },
 ];
 

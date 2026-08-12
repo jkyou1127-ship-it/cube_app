@@ -16,6 +16,7 @@ interface Props {
   isAdmin: boolean;
   onDailyGoalMinusClick: (wasAtFloor: boolean) => void;
   onInspectionToggle: () => void;
+  onPbTileClick: () => void;
   onUpdateSettings: (patch: Partial<Settings>) => void;
   onUpdatePenalty: (id: string, penalty: Penalty) => void;
   onDeleteSolve: (id: string) => void;
@@ -46,6 +47,7 @@ export function RecordsScreen({
   isAdmin,
   onDailyGoalMinusClick,
   onInspectionToggle,
+  onPbTileClick,
   onUpdateSettings,
   onUpdatePenalty,
   onDeleteSolve,
@@ -138,7 +140,7 @@ export function RecordsScreen({
   return (
     <div className="screen">
       <div className="stat-grid">
-        <div className="stat-tile stat-tile--primary">
+        <div className="stat-tile stat-tile--primary" onPointerDown={onPbTileClick}>
           <div className="stat-tile__label">PB</div>
           <div className="stat-tile__value mono">{best ? fmt(effectiveMs(best)) : '-'}</div>
         </div>

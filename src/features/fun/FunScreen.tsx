@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { ComponentType } from 'react';
 import { ModeSelect, type ModeOption } from '../../components/ModeSelect';
 import { ReactionGame } from './ReactionGame';
 import { TypingGame } from './TypingGame';
@@ -11,8 +12,26 @@ import { KeyboardSound } from './KeyboardSound';
 import { FogWipe } from './FogWipe';
 import { AdminConsole } from './AdminConsole';
 import { AdminArcade } from './AdminArcade';
+import { ColorMemory, GhostHunt, GoldClicker, IdlePatience, PrecisionStop, StarCatch } from './secretGames';
 
-type Mode = 'reaction' | 'typing' | 'doodle' | 'bubble' | 'hacker' | 'life' | 'dvd' | 'keysound' | 'fog' | 'admin' | 'admin-arcade';
+type Mode =
+  | 'reaction'
+  | 'typing'
+  | 'doodle'
+  | 'bubble'
+  | 'hacker'
+  | 'life'
+  | 'dvd'
+  | 'keysound'
+  | 'fog'
+  | 'admin'
+  | 'admin-arcade'
+  | 'egg-ghost'
+  | 'egg-gold'
+  | 'egg-patience'
+  | 'egg-memory'
+  | 'egg-precision'
+  | 'egg-star';
 
 const BASE_MODES: ModeOption<Mode>[] = [
   { key: 'reaction', label: '⚡ 반응속도' },
@@ -31,6 +50,18 @@ const ADMIN_MODES: ModeOption<Mode>[] = [
   { key: 'admin-arcade', label: '👑 관리자 아케이드' },
 ];
 
+// each secret mascot gets exactly one exclusive fun mode, shown only while
+// that character is the one currently equipped - same rule as its matching
+// secret theme.
+const SECRET_GAME_CONFIG: Record<string, { key: Mode; label: string; Component: ComponentType }> = {
+  'rip-sq1': { key: 'egg-ghost', label: '👻 유령 숨바꼭질', Component: GhostHunt },
+  'gold-cube': { key: 'egg-gold', label: '🪙 황금 클리커', Component: GoldClicker },
+  'lazy-cat': { key: 'egg-patience', label: '😴 인내심 테스트', Component: IdlePatience },
+  'rainbow-cube': { key: 'egg-memory', label: '🌈 레인보우 기억력', Component: ColorMemory },
+  'lightning-cube': { key: 'egg-precision', label: '⚡ 정지 챌린지', Component: PrecisionStop },
+  'shooting-star': { key: 'egg-star', label: '🌠 소원 잡기', Component: StarCatch },
+};
+
 interface Props {
   mascotCharacter?: string;
 }
@@ -39,12 +70,19 @@ export function FunScreen({ mascotCharacter }: Props) {
   // the admin-only tabs only show up while the admin-crown mascot is equipped -
   // same rule as its matching secret theme
   const adminTabUnlocked = mascotCharacter === 'admin-crown';
-  const modes = adminTabUnlocked ? [...BASE_MODES, ...ADMIN_MODES] : BASE_MODES;
+  const secretGame = mascotCharacter ? SECRET_GAME_CONFIG[mascotCharacter] : undefined;
+  const modes = [
+    ...BASE_MODES,
+    ...(secretGame ? [{ key: secretGame.key, label: secretGame.label, dividerBefore: true }] : []),
+    ...(adminTabUnlocked ? ADMIN_MODES : []),
+  ];
   const [mode, setMode] = useState<Mode>('reaction');
 
   useEffect(() => {
     if ((mode === 'admin' || mode === 'admin-arcade') && !adminTabUnlocked) setMode('reaction');
-  }, [mode, adminTabUnlocked]);
+    if (secretGame === undefined && mode.startsWith('egg-')) setMode('reaction');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, adminTabUnlocked, mascotCharacter]);
 
   return (
     <div className="screen">
@@ -61,6 +99,7 @@ export function FunScreen({ mascotCharacter }: Props) {
       {mode === 'fog' && <FogWipe />}
       {mode === 'admin' && adminTabUnlocked && <AdminConsole />}
       {mode === 'admin-arcade' && adminTabUnlocked && <AdminArcade />}
+      {secretGame && mode === secretGame.key && <secretGame.Component />}
     </div>
   );
 }

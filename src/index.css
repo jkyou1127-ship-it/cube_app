@@ -613,6 +613,32 @@
   color-scheme: dark;
 }
 
+:root[data-theme='shooting-star'] {
+  --bg: #050814;
+  --bg-elevated: #0d1330;
+  --bg-glass: rgba(5, 8, 20, 0.82);
+  --bg-card: #0d1330;
+  --bg-hover: #141c42;
+  --border: #1c2854;
+  --border-strong: #263568;
+  --text: #eef3ff;
+  --text-dim: #93aef0;
+  --text-faint: #4d5f9c;
+  --accent: #60a5fa;
+  --accent-soft: rgba(96, 165, 250, 0.18);
+  --accent-contrast: #062042;
+  --green: #2fbf62;
+  --green-soft: rgba(47, 191, 98, 0.14);
+  --red: #f0554e;
+  --red-soft: rgba(240, 85, 78, 0.14);
+  --amber: #fef08a;
+  --amber-soft: rgba(254, 240, 138, 0.14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
+
 :root[data-theme='admin-crown'] {
   --bg: #1a0f33;
   --bg-elevated: #271a4d;
