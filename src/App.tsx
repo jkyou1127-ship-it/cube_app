@@ -7,6 +7,7 @@ import { bestOf, effectiveMs } from './lib/stats';
 import { msUntilNextTime, registerServiceWorker, showLocalNotification, RETURN_REMINDER_THRESHOLD_MS } from './lib/notifications';
 import { firebaseConfigured } from './lib/firebase';
 import { onAuthChange, type User } from './lib/auth';
+import { isAdminUser } from './lib/admin';
 import { deleteAllCloudSolves, deleteCloudSolve, fetchCloudSolves, subscribeCloudSolves, uploadSolves } from './lib/cloudSync';
 import { BottomNav } from './components/BottomNav';
 import { Confetti } from './components/Confetti';
@@ -314,6 +315,7 @@ export default function App() {
             sessions={sessions}
             settings={settings}
             unlockedSecrets={unlockedSecrets}
+            isAdmin={isAdminUser(user?.uid)}
             onDailyGoalMinusClick={clickDailyGoalMinus}
             onInspectionToggle={toggleInspection}
             onUpdateSettings={updateSettings}

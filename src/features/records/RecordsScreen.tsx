@@ -13,6 +13,7 @@ interface Props {
   sessions: Session[];
   settings: Settings;
   unlockedSecrets: Set<string>;
+  isAdmin: boolean;
   onDailyGoalMinusClick: (wasAtFloor: boolean) => void;
   onInspectionToggle: () => void;
   onUpdateSettings: (patch: Partial<Settings>) => void;
@@ -42,6 +43,7 @@ export function RecordsScreen({
   sessions,
   settings,
   unlockedSecrets,
+  isAdmin,
   onDailyGoalMinusClick,
   onInspectionToggle,
   onUpdateSettings,
@@ -223,7 +225,7 @@ export function RecordsScreen({
       <div className="section-title">마스코트</div>
       <div className="card">
         <div className="mascot-picker">
-          {visibleCharacters(unlockedSecrets).map((c) => (
+          {visibleCharacters(unlockedSecrets, isAdmin).map((c) => (
             <button
               key={c.id}
               className={`mascot-picker__item${settings.mascotCharacter === c.id ? ' active' : ''}`}

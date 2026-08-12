@@ -27,7 +27,8 @@ export type CharacterId =
   | 'gold-cube'
   | 'lazy-cat'
   | 'rainbow-cube'
-  | 'lightning-cube';
+  | 'lightning-cube'
+  | 'admin-crown';
 
 // 12x13 pixel-art grids. '.' = transparent.
 const BLOB_SPRITE = [
@@ -181,6 +182,23 @@ const LIGHTNING_CUBE_SPRITE = [
   '...KK..KK...',
 ];
 
+// cube body topped with a crown - for the app's admin account only
+const ADMIN_SPRITE = [
+  '.C..C..C..C.',
+  'CCCCCJCCCCCC',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'BBWKBBBBKWBB',
+  'BBPBBBBBBPBB',
+  'BBBKBBBBKBBB',
+  'BBBBKKKKBBBB',
+  'BBBBBBBBBBBB',
+  'BBBBBBBBBBBB',
+  'DDDDDDDDDDDD',
+  '...DD..DD...',
+  '...KK..KK...',
+];
+
 const PALETTES: Record<string, Record<string, string>> = {
   blue: { B: '#6c8cff', D: '#3f5fe0', K: '#22243a', W: '#ffffff', P: '#ff9ec4' },
   pink: { B: '#ff7aa8', D: '#e8508a', K: '#3a1f2b', W: '#ffffff', P: '#ffe1ec' },
@@ -197,6 +215,7 @@ const PALETTES: Record<string, Record<string, string>> = {
   sleepy: { B: '#c9c3e0', D: '#a89fc7', K: '#3a3550', W: '#ffffff', P: '#ffd6ea' },
   rainbow: { R: '#ff5c5c', O: '#ff9f43', Y: '#ffd93d', G: '#4ade80', V: '#a78bfa', D: '#8b7fc7', K: '#2a2a2a', W: '#ffffff', P: '#fff3b0' },
   volt: { B: '#22d3ee', D: '#0891b2', K: '#082f35', W: '#ffffff', P: '#d6fbff', Z: '#fde047' },
+  royal: { B: '#7c3aed', D: '#5b21b6', K: '#1e1033', W: '#ffffff', P: '#f5d0fe', C: '#ffd700', J: '#ef4444' },
 };
 
 export interface MascotCharacter {
@@ -206,6 +225,8 @@ export interface MascotCharacter {
   colors: Record<string, string>;
   /** hidden easter-egg character - excluded from the picker unless unlocked */
   secret?: boolean;
+  /** only ever shown to the admin account (see lib/admin.ts), regardless of unlock state */
+  adminOnly?: boolean;
   /** character-exclusive speech-bubble lines - replaces the shared line pool when tapped */
   quotes?: string[];
 }
@@ -286,12 +307,30 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     secret: true,
     quotes: ['번쩍! 빠르게 가자!', '속도가 생명이다', '찌릿찌릿하지?', '느린 건 못 참아'],
   },
+  {
+    id: 'admin-crown',
+    name: '관리자 큐브',
+    sprite: ADMIN_SPRITE,
+    colors: PALETTES.royal,
+    secret: true,
+    adminOnly: true,
+    quotes: [
+      '어서와요, 관리자님',
+      '캐릭터는 전부 이미 갖고 있잖아요',
+      '버그 제보는 언제든 환영이에요',
+      '오늘도 앱 잘 부탁해요',
+      '왕관 무겁지 않아요, 걱정 마세요',
+    ],
+  },
 ];
 
 export function getCharacter(id: CharacterId): MascotCharacter {
   return MASCOT_CHARACTERS.find((c) => c.id === id) ?? MASCOT_CHARACTERS[0];
 }
 
-export function visibleCharacters(unlockedSecretIds: Set<string>): MascotCharacter[] {
-  return MASCOT_CHARACTERS.filter((c) => !c.secret || unlockedSecretIds.has(c.id));
+export function visibleCharacters(unlockedSecretIds: Set<string>, isAdmin = false): MascotCharacter[] {
+  return MASCOT_CHARACTERS.filter((c) => {
+    if (c.adminOnly) return isAdmin;
+    return !c.secret || unlockedSecretIds.has(c.id) || isAdmin;
+  });
 }
