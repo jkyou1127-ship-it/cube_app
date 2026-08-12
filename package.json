@@ -12,12 +12,15 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "icon": "node scripts/make-cube-icon.mjs && node scripts/generate-icon.mjs",
+    "vendor:cubing": "node scripts/vendor-cubing.mjs",
+    "postinstall": "node scripts/vendor-cubing.mjs",
     "electron:dev": "concurrently -k -n VITE,ELECTRON \"npm:dev\" \"wait-on tcp:5173 && electron .\"",
     "electron:build": "npm run build && electron-builder --win",
     "electron:build:dir": "npm run build && electron-builder --win --dir"
   },
   "dependencies": {
     "@types/web-bluetooth": "^0.0.21",
+    "cubing": "^0.63.3",
     "firebase": "^12.17.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

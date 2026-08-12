@@ -42,7 +42,8 @@ export function TimerScreen({
   const inspectionActive = inspectionEnabled && eventDef.usesInspection;
 
   const [phase, setPhase] = useState<Phase>('idle');
-  const [scramble, setScramble] = useState(() => eventDef.generateScramble());
+  const [scramble, setScramble] = useState('');
+  const [scrambleLoading, setScrambleLoading] = useState(true);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [inspectMs, setInspectMs] = useState(0);
   const [lastResultMs, setLastResultMs] = useState<number | null>(null);
@@ -58,6 +59,10 @@ export function TimerScreen({
   const rafRef = useRef<number>(0);
   const pendingPenaltyRef = useRef<Penalty>(null);
   const ganRef = useRef<GanTimerLink | null>(null);
+  // scramble generation is async (it may hit a WASM-backed solver) - guarded by
+  // a request id so a fast event switch can't let a stale in-flight promise
+  // overwrite a newer one.
+  const scrambleRequestIdRef = useRef(0);
   // true from the moment a solve is stopped (by either path below) until hands
   // finally lift off the pads - guards against the same physical "hands down to
   // stop" contact being misread as a brand new "hands down to arm" a moment later
@@ -70,8 +75,25 @@ export function TimerScreen({
     };
   }, []);
 
+  function advanceScramble(evt: typeof eventDef) {
+    const requestId = ++scrambleRequestIdRef.current;
+    setScrambleLoading(true);
+    evt
+      .generateScramble()
+      .then((s) => {
+        if (scrambleRequestIdRef.current !== requestId) return; // superseded by a newer request
+        setScramble(s);
+        setScrambleLoading(false);
+      })
+      .catch(() => {
+        if (scrambleRequestIdRef.current !== requestId) return;
+        setScramble('');
+        setScrambleLoading(false);
+      });
+  }
+
   useEffect(() => {
-    setScramble(eventDef.generateScramble());
+    advanceScramble(eventDef);
     setPhase('idle');
     setLastResultMs(null);
     setResultPending(false);
@@ -133,7 +155,7 @@ export function TimerScreen({
     setLastPenalty(penalty);
     setResultPending(true);
     onFinishSolve(ms, scramble, penalty);
-    setScramble(eventDef.generateScramble());
+    advanceScramble(eventDef);
     setQuote(randomQuote());
     pendingPenaltyRef.current = null;
   }
@@ -360,13 +382,8 @@ export function TimerScreen({
             </div>
           )}
           <div className="scramble-chip">
-            <div className="scramble-text mono">{scramble}</div>
+            <div className="scramble-text mono">{scrambleLoading && !scramble ? '스크램블 생성 중...' : scramble}</div>
           </div>
-          {!eventDef.wellEstablishedNotation && phase === 'idle' && (
-            <p className="faint" style={{ marginTop: 6, textAlign: 'center' }}>
-              ⚠️ {eventDef.name} 스크램블은 간이 연습용이에요
-            </p>
-          )}
           <div className="timer-goal-row">
             {inspecting ? (
               <span className="badge badge-accent">🔍 검사 중</span>
