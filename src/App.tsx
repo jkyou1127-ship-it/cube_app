@@ -336,7 +336,7 @@ export default function App() {
             onDeleteSession={deleteSession}
           />
         )}
-        {activeTab === 'fun' && <FunScreen mascotCharacter={settings.mascotCharacter} />}
+        {activeTab === 'fun' && <FunScreen mascotCharacter={settings.mascotCharacter} isAdmin={isAdmin} />}
       </main>
 
       {showChrome && <BottomNav active={activeTab} onChange={setActiveTab} />}

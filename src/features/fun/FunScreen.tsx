@@ -51,38 +51,35 @@ const ADMIN_MODES: ModeOption<Mode>[] = [
 ];
 
 // each secret mascot gets exactly one exclusive fun mode, shown only while
-// that character is the one currently equipped - same rule as its matching
-// secret theme.
-const SECRET_GAME_CONFIG: Record<string, { key: Mode; label: string; Component: ComponentType }> = {
-  'rip-sq1': { key: 'egg-ghost', label: '👻 유령 숨바꼭질', Component: GhostHunt },
-  'gold-cube': { key: 'egg-gold', label: '🪙 황금 클리커', Component: GoldClicker },
-  'lazy-cat': { key: 'egg-patience', label: '😴 인내심 테스트', Component: IdlePatience },
-  'rainbow-cube': { key: 'egg-memory', label: '🌈 레인보우 기억력', Component: ColorMemory },
-  'lightning-cube': { key: 'egg-precision', label: '⚡ 정지 챌린지', Component: PrecisionStop },
-  'shooting-star': { key: 'egg-star', label: '🌠 소원 잡기', Component: StarCatch },
-};
+// that character is the one currently equipped - EXCEPT for the admin
+// account, which gets every one of these regardless of which mascot is worn.
+const SECRET_GAME_LIST: { characterId: string; key: Mode; label: string; Component: ComponentType }[] = [
+  { characterId: 'rip-sq1', key: 'egg-ghost', label: '👻 유령 숨바꼭질', Component: GhostHunt },
+  { characterId: 'gold-cube', key: 'egg-gold', label: '🪙 황금 클리커', Component: GoldClicker },
+  { characterId: 'lazy-cat', key: 'egg-patience', label: '😴 인내심 테스트', Component: IdlePatience },
+  { characterId: 'rainbow-cube', key: 'egg-memory', label: '🌈 레인보우 기억력', Component: ColorMemory },
+  { characterId: 'lightning-cube', key: 'egg-precision', label: '⚡ 정지 챌린지', Component: PrecisionStop },
+  { characterId: 'shooting-star', key: 'egg-star', label: '🌠 소원 잡기', Component: StarCatch },
+];
 
 interface Props {
   mascotCharacter?: string;
+  isAdmin?: boolean;
 }
 
-export function FunScreen({ mascotCharacter }: Props) {
-  // the admin-only tabs only show up while the admin-crown mascot is equipped -
-  // same rule as its matching secret theme
-  const adminTabUnlocked = mascotCharacter === 'admin-crown';
-  const secretGame = mascotCharacter ? SECRET_GAME_CONFIG[mascotCharacter] : undefined;
-  const modes = [
-    ...BASE_MODES,
-    ...(secretGame ? [{ key: secretGame.key, label: secretGame.label, dividerBefore: true }] : []),
-    ...(adminTabUnlocked ? ADMIN_MODES : []),
-  ];
+export function FunScreen({ mascotCharacter, isAdmin = false }: Props) {
+  // admin gets every secret mini game regardless of equipped mascot; everyone
+  // else only gets the one matching whichever secret mascot is equipped
+  const unlockedSecretGames = isAdmin ? SECRET_GAME_LIST : SECRET_GAME_LIST.filter((g) => g.characterId === mascotCharacter);
+  const eggModes: ModeOption<Mode>[] = unlockedSecretGames.map((g, i) => ({ key: g.key, label: g.label, dividerBefore: i === 0 }));
+  const modes = [...BASE_MODES, ...eggModes, ...(isAdmin ? ADMIN_MODES : [])];
   const [mode, setMode] = useState<Mode>('reaction');
 
   useEffect(() => {
-    if ((mode === 'admin' || mode === 'admin-arcade') && !adminTabUnlocked) setMode('reaction');
-    if (secretGame === undefined && mode.startsWith('egg-')) setMode('reaction');
+    if ((mode === 'admin' || mode === 'admin-arcade') && !isAdmin) setMode('reaction');
+    if (mode.startsWith('egg-') && !unlockedSecretGames.some((g) => g.key === mode)) setMode('reaction');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, adminTabUnlocked, mascotCharacter]);
+  }, [mode, isAdmin, mascotCharacter]);
 
   return (
     <div className="screen">
@@ -97,9 +94,9 @@ export function FunScreen({ mascotCharacter }: Props) {
       {mode === 'dvd' && <DvdScreensaver />}
       {mode === 'keysound' && <KeyboardSound />}
       {mode === 'fog' && <FogWipe />}
-      {mode === 'admin' && adminTabUnlocked && <AdminConsole />}
-      {mode === 'admin-arcade' && adminTabUnlocked && <AdminArcade />}
-      {secretGame && mode === secretGame.key && <secretGame.Component />}
+      {mode === 'admin' && isAdmin && <AdminConsole />}
+      {mode === 'admin-arcade' && isAdmin && <AdminArcade />}
+      {unlockedSecretGames.map((g) => mode === g.key && <g.Component key={g.key} />)}
     </div>
   );
 }
