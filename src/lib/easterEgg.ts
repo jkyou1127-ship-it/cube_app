@@ -60,7 +60,7 @@ export function trackThemeChange(themeId: string, onUnlock: () => void): void {
 // Egg 4 - "레인보우 큐브": visit every one of the 12 events at least once
 // (in any order - the app already starts on 3x3x3, so requiring a strict
 // order made the very first event impossible to "re-select" and count).
-const ALL_EVENTS = ['333', '222', '444', '555', '666', '777', '333oh', '333bf', 'pyram', 'skewb', 'minx', 'clock'];
+const ALL_EVENTS = ['333', '222', '444', '555', '666', '777', '333oh', '333bf', 'pyram', 'skewb', 'minx', 'sq1', 'clock'];
 let visitedEvents = new Set<string>();
 
 export function trackEventChange(eventId: string, onUnlock: () => void): void {

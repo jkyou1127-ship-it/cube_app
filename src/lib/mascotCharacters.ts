@@ -241,7 +241,12 @@ export const MASCOT_CHARACTERS: MascotCharacter[] = [
     sprite: GHOST_SPRITE,
     colors: PALETTES.ghost,
     secret: true,
-    quotes: ['나는... 원래 스퀘어-1이었어...', '(3,0) / (0,-3)... 아직도 그 스크램블이 잊혀지지 않아', '지워졌지만 잊혀지지는 않을게'],
+    quotes: [
+      '어? 스퀘어-1 부활했는데... 나는 뭐지?',
+      '살아났으면 나한테도 말을 해줬어야지',
+      '이제 유령 은퇴해도 되는 건가',
+      '(3,0) / (0,-3)... 그 스크램블이 아직도 생각나',
+    ],
   },
   {
     id: 'gold-cube',
