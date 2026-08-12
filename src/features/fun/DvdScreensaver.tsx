@@ -2,7 +2,13 @@ import { useEffect, useRef } from 'react';
 
 const COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6', '#a855f7', '#ec4899', '#06b6d4', '#eab308'];
 
-export function DvdScreensaver() {
+interface Props {
+  logo?: string;
+  colors?: string[];
+  hint?: string;
+}
+
+export function DvdScreensaver({ logo = '🧊 CUBE', colors = COLORS, hint = '모서리에 정확히 부딪히는 순간을 가만히 기다려보세요.' }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const posRef = useRef({ x: 24, y: 24 });
@@ -12,7 +18,7 @@ export function DvdScreensaver() {
 
   useEffect(() => {
     const box = boxRef.current;
-    if (box) box.style.color = COLORS[0];
+    if (box) box.style.color = colors[0];
 
     function frame() {
       const wrap = wrapRef.current;
@@ -51,8 +57,8 @@ export function DvdScreensaver() {
         velRef.current = { x: vx, y: vy };
         box.style.transform = `translate(${x}px, ${y}px)`;
         if (bounced) {
-          colorIdxRef.current = (colorIdxRef.current + 1) % COLORS.length;
-          box.style.color = COLORS[colorIdxRef.current];
+          colorIdxRef.current = (colorIdxRef.current + 1) % colors.length;
+          box.style.color = colors[colorIdxRef.current];
         }
       }
       rafRef.current = requestAnimationFrame(frame);
@@ -60,17 +66,18 @@ export function DvdScreensaver() {
 
     rafRef.current = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(rafRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="mini-game">
       <div className="dvd-wrap" ref={wrapRef}>
         <div className="dvd-logo" ref={boxRef}>
-          🧊 CUBE
+          {logo}
         </div>
       </div>
       <p className="faint" style={{ textAlign: 'center', marginTop: 10 }}>
-        모서리에 정확히 부딪히는 순간을 가만히 기다려보세요.
+        {hint}
       </p>
     </div>
   );

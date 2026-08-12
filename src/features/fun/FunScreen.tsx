@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ModeSelect, type ModeOption } from '../../components/ModeSelect';
 import { ReactionGame } from './ReactionGame';
 import { TypingGame } from './TypingGame';
 import { PixelCanvas } from './PixelCanvas';
@@ -9,10 +10,11 @@ import { DvdScreensaver } from './DvdScreensaver';
 import { KeyboardSound } from './KeyboardSound';
 import { FogWipe } from './FogWipe';
 import { AdminConsole } from './AdminConsole';
+import { AdminArcade } from './AdminArcade';
 
-type Mode = 'reaction' | 'typing' | 'doodle' | 'bubble' | 'hacker' | 'life' | 'dvd' | 'keysound' | 'fog' | 'admin';
+type Mode = 'reaction' | 'typing' | 'doodle' | 'bubble' | 'hacker' | 'life' | 'dvd' | 'keysound' | 'fog' | 'admin' | 'admin-arcade';
 
-const BASE_MODES: { key: Mode; label: string }[] = [
+const BASE_MODES: ModeOption<Mode>[] = [
   { key: 'reaction', label: '⚡ 반응속도' },
   { key: 'typing', label: '⌨️ 타자연습' },
   { key: 'doodle', label: '🎨 낙서장' },
@@ -24,30 +26,29 @@ const BASE_MODES: { key: Mode; label: string }[] = [
   { key: 'fog', label: '💨 김서림' },
 ];
 
+const ADMIN_MODES: ModeOption<Mode>[] = [
+  { key: 'admin', label: '🛡️ 관리자', dividerBefore: true },
+  { key: 'admin-arcade', label: '👑 관리자 아케이드' },
+];
+
 interface Props {
   mascotCharacter?: string;
 }
 
 export function FunScreen({ mascotCharacter }: Props) {
-  // the admin-only tab only shows up while the admin-crown mascot is equipped -
+  // the admin-only tabs only show up while the admin-crown mascot is equipped -
   // same rule as its matching secret theme
   const adminTabUnlocked = mascotCharacter === 'admin-crown';
-  const modes = adminTabUnlocked ? [...BASE_MODES, { key: 'admin' as const, label: '🛡️ 관리자' }] : BASE_MODES;
+  const modes = adminTabUnlocked ? [...BASE_MODES, ...ADMIN_MODES] : BASE_MODES;
   const [mode, setMode] = useState<Mode>('reaction');
 
   useEffect(() => {
-    if (mode === 'admin' && !adminTabUnlocked) setMode('reaction');
+    if ((mode === 'admin' || mode === 'admin-arcade') && !adminTabUnlocked) setMode('reaction');
   }, [mode, adminTabUnlocked]);
 
   return (
     <div className="screen">
-      <div className="chip-tabs">
-        {modes.map((m) => (
-          <button key={m.key} className={`chip-tab${mode === m.key ? ' active' : ''}`} onClick={() => setMode(m.key)}>
-            {m.label}
-          </button>
-        ))}
-      </div>
+      <ModeSelect value={mode} options={modes} onChange={setMode} />
 
       {mode === 'reaction' && <ReactionGame />}
       {mode === 'typing' && <TypingGame />}
@@ -59,6 +60,7 @@ export function FunScreen({ mascotCharacter }: Props) {
       {mode === 'keysound' && <KeyboardSound />}
       {mode === 'fog' && <FogWipe />}
       {mode === 'admin' && adminTabUnlocked && <AdminConsole />}
+      {mode === 'admin-arcade' && adminTabUnlocked && <AdminArcade />}
     </div>
   );
 }

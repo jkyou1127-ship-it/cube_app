@@ -3,16 +3,21 @@ import { HACKER_CODE } from './hackerCode';
 
 const MAX_LEN = 6000;
 
-export function HackerTerminal() {
+interface Props {
+  code?: string;
+  hint?: string;
+}
+
+export function HackerTerminal({ code = HACKER_CODE, hint = '키보드가 없다면 화면을 톡톡 두드려도 돼요.' }: Props) {
   const [output, setOutput] = useState('');
   const idxRef = useRef(0);
   const outRef = useRef<HTMLDivElement>(null);
 
   function reveal() {
     const n = 1 + Math.floor(Math.random() * 3);
-    let chunk = HACKER_CODE.slice(idxRef.current, idxRef.current + n);
+    let chunk = code.slice(idxRef.current, idxRef.current + n);
     idxRef.current += n;
-    if (idxRef.current >= HACKER_CODE.length) {
+    if (idxRef.current >= code.length) {
       idxRef.current = 0;
       chunk += '\n\n// -- re-establishing uplink --\n\n';
     }
@@ -58,7 +63,7 @@ export function HackerTerminal() {
         </pre>
       </div>
       <p className="faint" style={{ textAlign: 'center', marginTop: 10 }}>
-        키보드가 없다면 화면을 톡톡 두드려도 돼요.
+        {hint}
       </p>
     </div>
   );

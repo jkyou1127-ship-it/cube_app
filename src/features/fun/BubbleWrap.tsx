@@ -3,10 +3,18 @@ import { playPop } from '../../lib/popSound';
 
 const COLS = 8;
 const ROWS = 12;
-const TOTAL = COLS * ROWS;
 
-export function BubbleWrap() {
-  const [popped, setPopped] = useState<boolean[]>(() => Array(TOTAL).fill(false));
+interface Props {
+  cols?: number;
+  rows?: number;
+  /** extra class applied to unpopped bubbles, e.g. for a reskinned palette */
+  bubbleClass?: string;
+  label?: string;
+}
+
+export function BubbleWrap({ cols = COLS, rows = ROWS, bubbleClass = '', label = '남은 뽁뽁이' }: Props) {
+  const total = cols * rows;
+  const [popped, setPopped] = useState<boolean[]>(() => Array(total).fill(false));
   const drawingRef = useRef(false);
 
   useEffect(() => {
@@ -18,17 +26,18 @@ export function BubbleWrap() {
   }, []);
 
   function pop(i: number) {
+    if (popped[i]) return;
+    playPop();
     setPopped((prev) => {
       if (prev[i]) return prev;
       const next = prev.slice();
       next[i] = true;
       return next;
     });
-    playPop();
   }
 
   function refill() {
-    setPopped(Array(TOTAL).fill(false));
+    setPopped(Array(total).fill(false));
   }
 
   const remaining = popped.filter((p) => !p).length;
@@ -36,14 +45,16 @@ export function BubbleWrap() {
   return (
     <div className="mini-game">
       <div className="row mini-game__stats">
-        <span className="badge">남은 뽁뽁이 {remaining}</span>
+        <span className="badge">
+          {label} {remaining}
+        </span>
         <button className="btn btn-sm" onClick={refill}>
           다시 채우기
         </button>
       </div>
       <div
         className="bubble-grid"
-        style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
         onPointerDown={() => {
           drawingRef.current = true;
         }}
@@ -51,7 +62,7 @@ export function BubbleWrap() {
         {popped.map((p, i) => (
           <button
             key={i}
-            className={`bubble${p ? ' bubble--popped' : ''}`}
+            className={`bubble${p ? ' bubble--popped' : bubbleClass ? ` ${bubbleClass}` : ''}`}
             aria-label="뽁뽁이"
             onPointerDown={() => pop(i)}
             onPointerEnter={() => {

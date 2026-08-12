@@ -1,6 +1,18 @@
 import { useEffect, useRef } from 'react';
 
-export function FogWipe() {
+interface Props {
+  fogColor?: string;
+  sparkleColor?: string;
+  revealEmoji?: string;
+  revealText?: string;
+}
+
+export function FogWipe({
+  fogColor = 'rgba(226, 230, 236, 0.96)',
+  sparkleColor = '255, 255, 255',
+  revealEmoji = '🧊✨',
+  revealText = '짜잔, 찾았다!',
+}: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
@@ -11,10 +23,10 @@ export function FogWipe() {
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(226, 230, 236, 0.96)';
+    ctx.fillStyle = fogColor;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < 260; i++) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.14})`;
+      ctx.fillStyle = `rgba(${sparkleColor}, ${Math.random() * 0.14})`;
       const r = Math.random() * 36 + 8;
       ctx.beginPath();
       ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, r, 0, Math.PI * 2);
@@ -105,8 +117,8 @@ export function FogWipe() {
       </div>
       <div className="fog-wrap" ref={wrapRef}>
         <div className="fog-reveal">
-          <div style={{ fontSize: 46 }}>🧊✨</div>
-          <div style={{ fontWeight: 800, marginTop: 8, fontSize: 18 }}>짜잔, 찾았다!</div>
+          <div style={{ fontSize: 46 }}>{revealEmoji}</div>
+          <div style={{ fontWeight: 800, marginTop: 8, fontSize: 18 }}>{revealText}</div>
         </div>
         <canvas
           ref={canvasRef}

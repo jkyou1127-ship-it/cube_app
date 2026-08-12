@@ -22,7 +22,17 @@ function nextGeneration(cols: number, rows: number, cur: Uint8Array): Uint8Array
   return next;
 }
 
-export function GameOfLife() {
+interface SeedPattern {
+  label: string;
+  /** [row, col] offsets, small and non-negative - centered onto the live grid when seeded */
+  cells: [number, number][];
+}
+
+interface Props {
+  seedPattern?: SeedPattern;
+}
+
+export function GameOfLife({ seedPattern }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gridRef = useRef<Uint8Array>(new Uint8Array(0));
@@ -154,6 +164,23 @@ export function GameOfLife() {
     }
   }
 
+  function seedFromPattern() {
+    if (!seedPattern) return;
+    const { cols, rows } = dimsRef.current;
+    const grid = new Uint8Array(cols * rows);
+    const maxR = Math.max(...seedPattern.cells.map(([r]) => r));
+    const maxC = Math.max(...seedPattern.cells.map(([, c]) => c));
+    const offR = Math.floor((rows - maxR) / 2);
+    const offC = Math.floor((cols - maxC) / 2);
+    for (const [r, c] of seedPattern.cells) {
+      const rr = r + offR;
+      const cc = c + offC;
+      if (rr >= 0 && rr < rows && cc >= 0 && cc < cols) grid[rr * cols + cc] = 1;
+    }
+    gridRef.current = grid;
+    draw();
+  }
+
   return (
     <div className="mini-game">
       <div className="row mini-game__stats">
@@ -163,6 +190,11 @@ export function GameOfLife() {
         <button className="btn btn-sm btn-ghost" onClick={randomize}>
           무작위
         </button>
+        {seedPattern && (
+          <button className="btn btn-sm btn-ghost" onClick={seedFromPattern}>
+            {seedPattern.label}
+          </button>
+        )}
         <button className="btn btn-sm btn-ghost" onClick={clear}>
           지우기
         </button>
