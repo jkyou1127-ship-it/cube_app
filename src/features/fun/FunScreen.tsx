@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ReactionGame } from './ReactionGame';
 import { TypingGame } from './TypingGame';
 import { PixelCanvas } from './PixelCanvas';
@@ -8,10 +8,11 @@ import { GameOfLife } from './GameOfLife';
 import { DvdScreensaver } from './DvdScreensaver';
 import { KeyboardSound } from './KeyboardSound';
 import { FogWipe } from './FogWipe';
+import { AdminConsole } from './AdminConsole';
 
-type Mode = 'reaction' | 'typing' | 'doodle' | 'bubble' | 'hacker' | 'life' | 'dvd' | 'keysound' | 'fog';
+type Mode = 'reaction' | 'typing' | 'doodle' | 'bubble' | 'hacker' | 'life' | 'dvd' | 'keysound' | 'fog' | 'admin';
 
-const MODES: { key: Mode; label: string }[] = [
+const BASE_MODES: { key: Mode; label: string }[] = [
   { key: 'reaction', label: '⚡ 반응속도' },
   { key: 'typing', label: '⌨️ 타자연습' },
   { key: 'doodle', label: '🎨 낙서장' },
@@ -23,13 +24,25 @@ const MODES: { key: Mode; label: string }[] = [
   { key: 'fog', label: '💨 김서림' },
 ];
 
-export function FunScreen() {
+interface Props {
+  mascotCharacter?: string;
+}
+
+export function FunScreen({ mascotCharacter }: Props) {
+  // the admin-only tab only shows up while the admin-crown mascot is equipped -
+  // same rule as its matching secret theme
+  const adminTabUnlocked = mascotCharacter === 'admin-crown';
+  const modes = adminTabUnlocked ? [...BASE_MODES, { key: 'admin' as const, label: '🛡️ 관리자' }] : BASE_MODES;
   const [mode, setMode] = useState<Mode>('reaction');
+
+  useEffect(() => {
+    if (mode === 'admin' && !adminTabUnlocked) setMode('reaction');
+  }, [mode, adminTabUnlocked]);
 
   return (
     <div className="screen">
       <div className="chip-tabs">
-        {MODES.map((m) => (
+        {modes.map((m) => (
           <button key={m.key} className={`chip-tab${mode === m.key ? ' active' : ''}`} onClick={() => setMode(m.key)}>
             {m.label}
           </button>
@@ -45,6 +58,7 @@ export function FunScreen() {
       {mode === 'dvd' && <DvdScreensaver />}
       {mode === 'keysound' && <KeyboardSound />}
       {mode === 'fog' && <FogWipe />}
+      {mode === 'admin' && adminTabUnlocked && <AdminConsole />}
     </div>
   );
 }

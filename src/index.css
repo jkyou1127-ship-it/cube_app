@@ -614,19 +614,19 @@
 }
 
 :root[data-theme='admin-crown'] {
-  --bg: #120a24;
-  --bg-elevated: #1c1236;
-  --bg-glass: rgba(18, 10, 36, 0.8);
-  --bg-card: #1c1236;
-  --bg-hover: #241745;
-  --border: #2c1d4f;
-  --border-strong: #3a2766;
+  --bg: #1a0f33;
+  --bg-elevated: #271a4d;
+  --bg-glass: rgba(26, 15, 51, 0.82);
+  --bg-card: #271a4d;
+  --bg-hover: #33215f;
+  --border: #3a2766;
+  --border-strong: #4a3380;
   --text: #f5eaff;
-  --text-dim: #b79ee0;
-  --text-faint: #6b5590;
-  --accent: #ffd700;
-  --accent-soft: rgba(255, 215, 0, 0.16);
-  --accent-contrast: #3a2a00;
+  --text-dim: #c9a8f5;
+  --text-faint: #8867c9;
+  --accent: #a855f7;
+  --accent-soft: rgba(168, 85, 247, 0.2);
+  --accent-contrast: #2a0a4d;
   --green: #2fbf62;
   --green-soft: rgba(47, 191, 98, 0.14);
   --red: #f0554e;
